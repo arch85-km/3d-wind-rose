@@ -1,0 +1,735 @@
+<!-- ==========================================================================
+     3D Wind Rose — Method Notes
+     Paste into an Elementor "HTML" widget (Elements > HTML).
+
+     Same stylesheet as the Urban Wind Lab notes, byte for byte apart from the
+     class prefix (cs- -> wr-), so the two pages sit together. Everything is
+     scoped to .wr-doc, so nothing here can touch the rest of your theme. To
+     follow the visitor's dark-mode setting, change the opening tag to
+     <div class="wr-doc wr-auto-dark">.
+
+     Every figure on this page was read out of the 3D Wind Rose source code
+     (index.html, css/style.css, js/*.js) or computed from it — none is
+     estimated. Section 07 and the footer say which figures are which, and
+     by what method. Where the code does not settle a question, the page
+     says so.
+     © Karam Al-Obaidi
+     ========================================================================== -->
+
+<style>
+
+.wr-doc{
+  --wr-paper:#F1F2EE; --wr-surface:#FBFBF9; --wr-surface2:#E8EAE4;
+  --wr-ink:#16191B; --wr-ink2:#4C555A; --wr-ink3:#5F696E;
+  --wr-rule:#D6D9D1; --wr-rule2:#E5E7E1;
+  --wr-accent:#1D5A73; --wr-accent-soft:rgba(29,90,115,.10);
+  --wr-ok:#3F6B47;  --wr-ok-soft:rgba(63,107,71,.12);
+  --wr-warn:#8A6410;--wr-warn-soft:rgba(138,100,16,.13);
+  --wr-no:#8E3A32;  --wr-no-soft:rgba(142,58,50,.11);
+  /* Headings and body follow the site's own typeface. `inherit` resolves where
+     it is used — inside .wr-doc, whose parent is the Elementor container — so
+     this keeps working if the theme font ever changes.
+     The monospace stack must NOT inherit: the table number columns use
+     font-variant-numeric:tabular-nums and align on fixed-width digits, and the
+     formulas and BibTeX block depend on their spacing. */
+  /* The site pairs a sans for headings with a serif for body, so the page
+     does the same. Body inherits — CSS has no way to inherit "the theme's
+     HEADING font", so that one is named. If the site's heading face ever
+     changes, this is the single line to update.
+     Weights sit at 600 throughout: the site ships Poppins 400/500/600 and
+     Source Serif 4 400/600, so 700 and 800 do not exist and the browser
+     would either drop to 600 or synthesise a smeared bold. Size carries the
+     hierarchy instead. */
+  --wr-fd:"Poppins",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --wr-fb:inherit;
+  --wr-fm:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --wr-measure:90ch; --wr-rail:4.75rem;
+
+  background:var(--wr-paper); color:var(--wr-ink);
+  font-family:var(--wr-fb); font-size:17px; line-height:1.65; font-weight:400;
+  max-width:1040px; margin:0 auto; padding:0 20px 4rem;
+  -webkit-font-smoothing:antialiased; text-align:left;
+}
+@media (prefers-color-scheme:dark){
+  .wr-doc.wr-auto-dark{
+    --wr-paper:#121517; --wr-surface:#191D20; --wr-surface2:#21262A;
+    --wr-ink:#E9EBE6; --wr-ink2:#A6AFB4; --wr-ink3:#79838A;
+    --wr-rule:#2C3235; --wr-rule2:#232829;
+    --wr-accent:#74B6D0; --wr-accent-soft:rgba(116,182,208,.14);
+    --wr-ok:#7FB88C;  --wr-ok-soft:rgba(127,184,140,.14);
+    --wr-warn:#D6A748;--wr-warn-soft:rgba(214,167,72,.15);
+    --wr-no:#DD8479;  --wr-no-soft:rgba(221,132,121,.14);
+  }
+}
+
+/* local reset — only inside .wr-doc */
+.wr-doc *,.wr-doc *::before,.wr-doc *::after{box-sizing:border-box;}
+.wr-doc h1,.wr-doc h2,.wr-doc h3,.wr-doc h4,.wr-doc p,.wr-doc ul,.wr-doc ol,
+.wr-doc dl,.wr-doc dt,.wr-doc dd,.wr-doc table,.wr-doc figure{margin:0;padding:0;}
+.wr-doc ul,.wr-doc ol{list-style-position:outside;}
+.wr-doc li{margin:0;}
+.wr-doc img{max-width:100%;height:auto;}
+.wr-doc a{color:var(--wr-accent);text-decoration:underline;text-underline-offset:2px;}
+.wr-doc a:focus-visible{outline:2px solid var(--wr-accent);outline-offset:3px;}
+.wr-doc code,.wr-doc .wr-mono{font-family:var(--wr-fm);font-size:.855em;}
+/* Inline bold defaults to 700. A site that ships only 400/500/600 has no such
+   face, so the browser either drops to 600 or fakes one by smearing the 400.
+   Pin it to a weight that exists. */
+.wr-doc b,.wr-doc strong{font-weight:600;}
+.wr-doc code{background:var(--wr-accent-soft);color:var(--wr-accent);
+  padding:.1em .34em;border-radius:2px;border:0;}
+
+/* masthead */
+.wr-doc .wr-masthead{padding:3.5rem 0 2.25rem;border-bottom:2px solid var(--wr-ink);}
+.wr-doc .wr-eyebrow{font-family:var(--wr-fm);font-size:.70rem;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--wr-accent);margin:0 0 1.1rem;}
+.wr-doc h1{font-family:var(--wr-fd);font-weight:600;
+  font-size:clamp(2.1rem,6.2vw,3.35rem);line-height:1.02;letter-spacing:-.028em;
+  text-wrap:balance;margin:0 0 1.1rem;color:var(--wr-ink);}
+.wr-doc .wr-standfirst{max-width:var(--wr-measure);font-size:1.14rem;line-height:1.6;
+  color:var(--wr-ink2);margin:0;}
+.wr-doc .wr-standfirst strong{color:var(--wr-ink);font-weight:600;}
+.wr-doc .wr-byline{display:flex;flex-wrap:wrap;gap:.5rem 1.6rem;margin-top:1.9rem;
+  font-family:var(--wr-fm);font-size:.74rem;letter-spacing:.04em;color:var(--wr-ink3);}
+.wr-doc .wr-byline b{color:var(--wr-ink2);font-weight:500;}
+
+/* trap notice */
+.wr-doc .wr-traps{margin:2.5rem 0;border:1px solid var(--wr-rule);
+  border-left:4px solid var(--wr-no);background:var(--wr-surface);padding:1.5rem 1.6rem;}
+.wr-doc .wr-traps h2{font-family:var(--wr-fd);font-size:.82rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wr-no);margin:0 0 .9rem;}
+.wr-doc .wr-traps ol{margin:0;padding-left:1.15rem;display:grid;gap:.6rem;}
+.wr-doc .wr-traps li{max-width:var(--wr-measure);}
+
+/* sections */
+.wr-doc .wr-sec{padding:3.25rem 0 0;}
+.wr-doc .wr-sechead{display:grid;grid-template-columns:var(--wr-rail) 1fr;
+  align-items:baseline;gap:0 1rem;border-top:1px solid var(--wr-rule);
+  padding-top:1.4rem;margin-bottom:1.6rem;}
+.wr-doc .wr-secnum{font-family:var(--wr-fm);font-size:.95rem;font-weight:600;
+  color:var(--wr-accent);letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.wr-doc .wr-sechead h2{font-family:var(--wr-fd);font-weight:600;
+  font-size:clamp(1.45rem,3.3vw,1.95rem);line-height:1.12;letter-spacing:-.02em;
+  text-wrap:balance;margin:0;color:var(--wr-ink);}
+.wr-doc .wr-secbody{display:grid;grid-template-columns:var(--wr-rail) minmax(0,1fr);gap:0 1rem;}
+.wr-doc .wr-secbody>*{grid-column:2;}
+.wr-doc .wr-secbody>p,.wr-doc .wr-secbody>ul,.wr-doc .wr-secbody>ol{max-width:var(--wr-measure);}
+.wr-doc .wr-secbody>p{margin:0 0 1.05rem;}
+.wr-doc .wr-secbody>ul,.wr-doc .wr-secbody>ol{margin:0 0 1.15rem;padding-left:1.15rem;
+  display:grid;gap:.5rem;}
+.wr-doc h3{font-family:var(--wr-fd);font-weight:600;font-size:1.06rem;
+  letter-spacing:-.005em;margin:1.9rem 0 .7rem;color:var(--wr-ink);}
+.wr-doc .wr-secbody>h3:first-child{margin-top:0;}
+.wr-doc h4{font-family:var(--wr-fm);font-weight:600;font-size:.74rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--wr-ink3);margin:1.6rem 0 .6rem;}
+
+.wr-doc .wr-formula{font-family:var(--wr-fm);font-size:.84rem;line-height:1.75;
+  background:var(--wr-surface);border:1px solid var(--wr-rule);
+  border-left:3px solid var(--wr-accent);padding:.95rem 1.1rem;margin:0 0 1.2rem;
+  overflow-x:auto;white-space:pre;color:var(--wr-ink);}
+.wr-doc .wr-formula em{color:var(--wr-ink3);font-style:normal;}
+.wr-doc .wr-note{font-size:.9rem;color:var(--wr-ink2);border-left:2px solid var(--wr-rule);
+  padding-left:.95rem;margin:0 0 1.2rem;max-width:var(--wr-measure);}
+
+/* tables */
+.wr-doc .wr-tbl{overflow-x:auto;margin:0 0 1.4rem;border:1px solid var(--wr-rule);
+  background:var(--wr-surface);}
+.wr-doc .wr-tbl table{border-collapse:collapse;width:100%;font-size:.845rem;
+  line-height:1.45;background:transparent;}
+.wr-doc .wr-tbl th,.wr-doc .wr-tbl td{padding:.5rem .7rem;text-align:left;
+  vertical-align:top;border:0;border-bottom:1px solid var(--wr-rule2);color:var(--wr-ink);}
+.wr-doc .wr-tbl thead th{font-family:var(--wr-fm);font-size:.68rem;font-weight:600;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--wr-ink3);
+  background:var(--wr-surface2);border-bottom:1px solid var(--wr-rule);white-space:nowrap;}
+.wr-doc .wr-tbl tbody tr:last-child td{border-bottom:0;}
+.wr-doc .wr-tbl tbody tr{background:transparent;}
+.wr-doc .wr-tbl .wr-n{text-align:right;font-family:var(--wr-fm);
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+.wr-doc .wr-tbl .wr-p{font-family:var(--wr-fm);font-size:.8rem;white-space:nowrap;}
+.wr-doc .wr-tbl .wr-d{font-family:var(--wr-fm);font-variant-numeric:tabular-nums;
+  white-space:nowrap;color:var(--wr-accent);font-weight:500;text-align:right;}
+.wr-doc .wr-tbl caption{caption-side:bottom;text-align:left;padding:.6rem .7rem;
+  font-size:.78rem;color:var(--wr-ink3);border-top:1px solid var(--wr-rule2);}
+
+/* chips + ledger */
+.wr-doc .wr-chip{display:inline-block;font-family:var(--wr-fm);font-size:.64rem;
+  font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:.15em .5em;
+  border-radius:2px;white-space:nowrap;}
+.wr-doc .wr-chip.is-in{background:var(--wr-ok-soft);color:var(--wr-ok);}
+.wr-doc .wr-chip.is-part{background:var(--wr-warn-soft);color:var(--wr-warn);}
+.wr-doc .wr-chip.is-out{background:var(--wr-no-soft);color:var(--wr-no);}
+.wr-doc .wr-ledger{display:grid;gap:0;border:1px solid var(--wr-rule);
+  background:var(--wr-surface);margin-bottom:1.4rem;}
+.wr-doc .wr-ledger>div{display:grid;grid-template-columns:7.5rem minmax(0,1fr);
+  gap:.2rem .9rem;padding:.8rem 1rem;border-bottom:1px solid var(--wr-rule2);}
+.wr-doc .wr-ledger>div:last-child{border-bottom:0;}
+.wr-doc .wr-ledger dt{font-family:var(--wr-fd);font-weight:600;font-size:.95rem;
+  grid-column:2;margin:0;color:var(--wr-ink);}
+.wr-doc .wr-ledger .wr-chip{grid-row:1;grid-column:1;align-self:start;margin-top:.18rem;}
+.wr-doc .wr-ledger dd{grid-column:2;margin:0;font-size:.93rem;color:var(--wr-ink2);
+  line-height:1.55;}
+
+/* exercises */
+.wr-doc .wr-ex{border:1px solid var(--wr-rule);background:var(--wr-surface);
+  padding:1.5rem 1.6rem;margin-bottom:1.5rem;}
+.wr-doc .wr-ex-n{font-family:var(--wr-fm);font-size:.7rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wr-accent);
+  display:block;margin-bottom:.35rem;}
+.wr-doc .wr-ex h3{margin:0 0 .9rem;font-size:1.18rem;}
+.wr-doc .wr-steps{margin:0;padding-left:1.2rem;display:grid;gap:.5rem;font-size:.95rem;}
+.wr-doc .wr-steps code{font-size:.8rem;}
+.wr-doc .wr-principle{font-size:.93rem;color:var(--wr-ink2);
+  border-top:1px solid var(--wr-rule2);padding-top:.85rem;margin:.95rem 0 0;}
+.wr-doc .wr-principle b{color:var(--wr-ink);font-weight:600;}
+
+/* footer */
+.wr-doc .wr-footer{margin-top:4rem;padding-top:1.6rem;border-top:2px solid var(--wr-ink);
+  font-size:.86rem;color:var(--wr-ink2);}
+.wr-doc .wr-footer p{max-width:var(--wr-measure);margin:0 0 .8rem;}
+.wr-doc .wr-cite{font-family:var(--wr-fm);font-size:.78rem;color:var(--wr-ink3);line-height:1.7;}
+.wr-doc .wr-ref{border-left:2px solid var(--wr-rule);padding-left:.95rem;margin:0 0 1rem;
+  max-width:var(--wr-measure);font-size:.92rem;color:var(--wr-ink2);}
+.wr-doc pre{margin:0 0 1rem;padding:.9rem 1rem;background:var(--wr-surface);
+  border:1px solid var(--wr-rule);overflow-x:auto;font-family:var(--wr-fm);
+  font-size:.78rem;line-height:1.6;color:var(--wr-ink);white-space:pre;}
+
+@media (max-width:720px){
+  .wr-doc{--wr-rail:0px;font-size:16px;}
+  .wr-doc .wr-sechead{grid-template-columns:1fr;gap:.35rem;}
+  .wr-doc .wr-secbody{grid-template-columns:minmax(0,1fr);}
+  .wr-doc .wr-secbody>*{grid-column:1;}
+  .wr-doc .wr-traps,.wr-doc .wr-ex{padding:1.15rem;}
+}
+@media (max-width:560px){
+  .wr-doc .wr-ledger>div{grid-template-columns:1fr;}
+  .wr-doc .wr-ledger .wr-chip{grid-row:auto;grid-column:1;justify-self:start;margin-bottom:.3rem;}
+  .wr-doc .wr-ledger dt,.wr-doc .wr-ledger dd{grid-column:1;}
+}
+@media (prefers-reduced-motion:reduce){
+  .wr-doc *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+</style>
+
+<div class="wr-doc">
+
+  <div class="wr-masthead">
+    <h1>3D Wind Rose Method Notes</h1>
+    <p class="wr-standfirst">
+      What this tool computes, and — the part that matters most when you cite it — <strong>what it
+      does not</strong>. It bins recorded climate data into a 16-direction frequency table and draws
+      it: no building enters that calculation, and loading a different model does not change a single
+      frequency, calm percentage or monthly figure. Everything below is read from the source code or
+      computed from it, not from what a wind-rose tool is generally assumed to do. Where the code
+      makes something unclear, this page says so rather than inferring.
+    </p>
+    <div class="wr-byline">
+      <span><b>Audience</b> Architecture students and staff</span>
+      <span><b>Method</b> EPW frequency binning &middot; no flow solved</span>
+      <span><b>Runs</b> Entirely in the browser</span>
+      <span><b>Version</b> 1.0.0 &middot; 15 September 2026</span>
+    </div>
+  </div>
+
+  <div class="wr-traps">
+    <h2>Three things to know before you cite a number</h2>
+    <ol>
+      <li><b>The rose is the weather station's climate, not the site's wind.</b> EPW wind speed is a
+        10&nbsp;m open-country measurement at the station. Checked directly against the source: no
+        height, terrain or roughness correction, and no displacement adjustment, exists anywhere in
+        the code. So the rose describes the regional climate the station recorded, not the wind
+        arriving at a particular building's façade. Use it to compare directions and seasons, not to
+        read off a design wind speed.</li>
+      <li><b>Calm is excluded from the petals — but not from the denominator.</b> Records below
+        0.5&nbsp;m/s are counted as calm and never placed in a direction/speed cell. But the
+        percentage each cell shows is still divided by <em>every</em> record the table was built
+        from, calm hours included. So the petals of a rose with, say, 8.3% calm sum to 91.7%, not
+        100%. Quote the calm percentage alongside any reading from the petals, or the figures will
+        not reconcile for anyone checking your working.</li>
+      <li><b>The wind data and the map location can be two different places — and "Sheffield" is
+        Doncaster Airport.</b> The built-in Sheffield preset is recorded at Doncaster Sheffield
+        Airport (WMO 034054); the tool's own label already says so — <span class="wr-mono">"Sheffield
+        (Doncaster Airport)"</span>, not bare "Sheffield" — but the parenthesis is easy to read past.
+        More generally, the tool tracks the distance between where the loaded wind data came from and
+        wherever the map is currently centred, and warns once that gap passes 50&nbsp;km. Loading a
+        preset and then moving the pin — or the reverse — is the situation to watch for.</li>
+    </ol>
+  </div>
+
+  <!-- 01 -->
+  <div class="wr-sec" id="wr-s01">
+    <div class="wr-sechead"><span class="wr-secnum">01</span><h2>What it computes</h2></div>
+    <div class="wr-secbody">
+      <p>A frequency table, binned once from whichever EPW records are loaded, drawn as a stack of
+        coloured wedges. Nothing else. <b>The building shown beside the rose plays no part in the
+        calculation</b> — <span class="wr-mono">js/epw.js</span> and
+        <span class="wr-mono">js/windrose.js</span>, the two files that produce every number the rose
+        shows, take a plain list of <span class="wr-mono">{direction, speed, month}</span> records and
+        nothing else; neither file contains any reference to a building, a model or a footprint.
+        Loading a different <span class="wr-mono">.obj</span> changes how large the rose is drawn (see
+        <a href="#wr-s04">How exact the numbers are</a>) and nothing about what it says.</p>
+
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Property</th><th>Value in the code</th></tr></thead>
+        <tbody>
+          <tr><td><b>Direction sectors</b></td><td class="wr-p">16, 22.5° each</td></tr>
+          <tr><td><b>Sector assignment</b></td><td class="wr-p">Math.round(direction &divide; 22.5) mod 16</td></tr>
+          <tr><td><b>Speed bins</b></td><td class="wr-p">0–2, 2–4, 4–6, 6–8, 8+ m/s — 5 bins, top bin open-ended</td></tr>
+          <tr><td><b>Calm threshold</b></td><td class="wr-p">speed &lt; 0.5 m/s</td></tr>
+          <tr><td><b>Frequency formula</b></td><td class="wr-p">(count in cell &divide; total records) &times; 100</td></tr>
+        </tbody>
+        <caption>Math.round, not Math.floor, in the sector assignment: sector 0 spans 348.75°–11.25°,
+          centred on due north, rather than 0°–22.5°. Every sector is centred on its compass point the
+          same way.</caption>
+      </table></div>
+
+      <h3>The frequency total, and what it leaves out</h3>
+      <p>Each cell's percentage is divided by <b>every</b> record the table was built from — calm
+        hours included — even though calm records are excluded from the sectors themselves. Summed
+        across all 16 sectors and 5 bins, the petals therefore add up to 100 minus the calm
+        percentage, not to 100. See the first trap above for what that means when quoting a figure.</p>
+
+      <h3>Monthly breakdown</h3>
+      <p>Records are grouped by the EPW file's own month field (1–12) and each month's group is passed
+        through the same binning function independently: a month's percentages are a share of that
+        month's own hours, not a share of the year. Records with a missing or out-of-range month still
+        count towards the annual table but not towards any month.</p>
+
+      <h3>What the interface reports</h3>
+      <p>Alongside the rose, the sidebar shows the total hours behind the currently displayed table
+        (annual, or a single month) and the calm percentage for that same table — both read straight
+        from the binning function's own output, not recomputed separately.</p>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="wr-sec" id="wr-s02">
+    <div class="wr-sechead"><span class="wr-secnum">02</span><h2>The data</h2></div>
+    <div class="wr-secbody">
+      <h3>EPW parsing</h3>
+      <p>An EPW file's first 8 lines are header metadata; the parser skips them and reads one hourly
+        record per remaining line. Wind direction is column 21 (index 20 of the comma-split line);
+        wind speed is column 22 (index 21) — the parser's own comment cites the EnergyPlus Weather
+        File (EPW) Data Dictionary for the full column layout, and the indices it reads match it. A
+        speed of 999 or above is EnergyPlus's own missing-data sentinel, and such rows are dropped
+        rather than treated as a real reading. The month is read from column 2. If no row survives
+        these checks, the parser refuses the file outright rather than returning an empty table.</p>
+
+      <h3>The embedded presets</h3>
+      <p>Three UK locations are built into the tool, so the sidebar's "suggested locations" list loads
+        a wind rose instantly with no file to download. All three are binned from real recorded TMYx
+        EPW files of 8,760 hourly observations each, including a genuine month-by-month breakdown:</p>
+
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Preset label</th><th>Station</th><th class="wr-n">WMO number</th></tr></thead>
+        <tbody>
+          <tr><td>London</td><td class="wr-p">London.Wea.Ctr-St.James.Park</td><td class="wr-n">037700</td></tr>
+          <tr><td>Sheffield (Doncaster Airport)</td><td class="wr-p">Doncaster.Sheffield-Hood.AP</td><td class="wr-n">034054</td></tr>
+          <tr><td>Edinburgh (Turnhouse Airport)</td><td class="wr-p">Edinburgh.AP</td><td class="wr-n">031600</td></tr>
+        </tbody>
+        <caption>Labels and WMO numbers exactly as the source code gives them. The Sheffield preset
+          already names its real station in its own label — worth reading past the parenthesis, since
+          the recording station sits well outside the city.</caption>
+      </table></div>
+
+      <p class="wr-note">Computed by the author, not read from the code, and not checked against a
+        live source in the environment where this page was written (see
+        <a href="#wr-s07">Limitations of this page</a>): using the tool's own distance formula against
+        a standard published coordinate for Sheffield's city centre, Doncaster Sheffield Airport sits
+        roughly 30&nbsp;km away. Treat that figure as an estimate to verify, not a measured fact.</p>
+
+      <p>TMYx stands for a typical meteorological year, extended series. It is not a record of any
+        single real year: it is assembled by selecting, for each calendar month, the most
+        statistically representative month from many years of observation at that station, then
+        stitching the twelve together. No date inside a TMYx file corresponds to weather that actually
+        occurred on that date — treat it as a representative year, not a historical one.</p>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="wr-sec" id="wr-s03">
+    <div class="wr-sechead"><span class="wr-secnum">03</span><h2>What is and isn't modelled</h2></div>
+    <div class="wr-secbody">
+      <p>Two quantities are computed per direction sector and speed bin: a count, and the percentage of
+        records it represents. Everything else on screen is either that table drawn as geometry, or
+        presentation.</p>
+
+      <h3>Computed and shown</h3>
+      <dl class="wr-ledger">
+        <div><span class="wr-chip is-in">In</span><dt>Direction/speed frequency</dt><dd>The core table: percentage of hours falling in each of 16 direction sectors &times; 5 speed bins, drawn as stacked wedges.</dd></div>
+        <div><span class="wr-chip is-in">In</span><dt>Calm percentage</dt><dd>Share of hours below 0.5 m/s — reported separately, and excluded from every wedge.</dd></div>
+        <div><span class="wr-chip is-in">In</span><dt>Total hours</dt><dd>Record count behind the table currently shown, annual or one month.</dd></div>
+        <div><span class="wr-chip is-in">In</span><dt>Monthly tables</dt><dd>The same frequency table, recomputed independently for each of the 12 EPW months.</dd></div>
+        <div><span class="wr-chip is-part">Note</span><dt>Wind-data/site distance</dt><dd>A great-circle distance between where the loaded wind data came from and the current map location — a location check, not a climate statistic — flagged past 50 km.</dd></div>
+      </dl>
+
+      <h3>Not modelled</h3>
+      <p>These are the assumptions a student is most likely to make wrongly, because a general
+        wind-analysis package would often offer them.</p>
+      <dl class="wr-ledger">
+        <div><span class="wr-chip is-out">Out</span><dt>Any influence of the building or its surroundings</dt><dd>Confirmed by reading every line of js/epw.js and js/windrose.js: no building, footprint or geometry reference exists in either file. Loading a model changes how large the rose is drawn, never a number it shows.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Height correction</dt><dd>EPW wind speed is measured at 10 m in open country at the station. No code anywhere adjusts it to any other height.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Terrain and roughness</dt><dd>No roughness length, terrain category or displacement height appears anywhere in the source.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Gust factors and exceedance statistics</dt><dd>The tool reports mean hourly frequencies only. No gust-equivalent speed, no exceedance probability of any kind.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Weibull or any distribution fitting</dt><dd>The rose is a direct histogram of recorded hours. No distribution is fitted to it.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Directional weighting of anything</dt><dd>Nothing downstream of the rose applies its frequencies as weights to any other quantity.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Comfort criteria of any kind</dt><dd>The tool assigns no comfort classes — unlike its sister tool, Urban Wind Lab, which applies (and heavily caveats) Lawson bands. A wind rose alone, with no flow field and no correction to the wind actually arriving at a building, cannot support a comfort claim on its own.</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- 04 -->
+  <div class="wr-sec" id="wr-s04">
+    <div class="wr-sechead"><span class="wr-secnum">04</span><h2>How exact the numbers are</h2></div>
+    <div class="wr-secbody">
+      <p>Unlike a solver, there is no approximation in the arithmetic itself: a frequency percentage is
+        a count divided by a total, computed once and read straight into the rose. The honest
+        treatment is therefore different — the question is not precision, it is
+        <b>representativeness</b>: what a correctly counted number from this particular source can and
+        cannot tell you.</p>
+
+      <h3>What limits the result anyway</h3>
+      <p>Four things, independent of each other. <b>The source year</b>: a TMYx file is a synthesised
+        representative year, not any year that occurred — see <a href="#wr-s02">The data</a>.
+        <b>The 22.5° sector</b>: two real peaks 15° apart are drawn as one. <b>The five speed bins,
+        with an open top</b>: nothing distinguishes a 9 m/s hour from a 20 m/s hour — both fall in
+        "8+". <b>The station itself</b>: a 10 m open-country reading with no height, roughness or
+        terrain correction applied anywhere in the code, so it describes the regional climate the
+        station recorded, not the wind arriving at any particular building's façade.</p>
+
+      <h3>The rose's drawn size is not a fifth kind of precision — it is not data at all</h3>
+      <p>Checked directly in <span class="wr-mono">rebuildWindRose()</span>: the rose's inner radius,
+        its overall span, and even its petal thickness are all set from the loaded model's footprint
+        (or a fixed default footprint when nothing is loaded), and the whole drawing is then rescaled
+        so the tallest direction's stack always reaches the same span. Two roses are therefore never
+        comparable by their size on screen — a small-looking rose over a large building and a
+        large-looking rose over a small one can show identical wind climates. Only the proportions
+        <em>within</em> one rose — which direction is tallest, how the bins stack — carry any
+        information at all.</p>
+
+      <h3>What a student may and may not quote</h3>
+      <ul>
+        <li><b>May:</b> the prevailing direction, and how the petal proportions change between two
+          months or two locations.</li>
+        <li><b>May:</b> the calm percentage, quoted alongside any petal reading (see the first
+          trap).</li>
+        <li><b>May not:</b> a wind speed at a building, read off the rose as if it were measured
+          there — the source never leaves the weather station.</li>
+        <li><b>May not:</b> a comfort or shelter claim of any kind — the tool computes none, see
+          <a href="#wr-s03">What is and isn't modelled</a>.</li>
+        <li><b>May not:</b> the rose's size on screen, as evidence of anything — it is auto-scaled to
+          the building's footprint, not to the data.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 05 -->
+  <div class="wr-sec" id="wr-s05">
+    <div class="wr-sechead"><span class="wr-secnum">05</span><h2>Inputs you control</h2></div>
+    <div class="wr-secbody">
+      <h4>Site and wind data</h4>
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Control</th><th>Range</th><th class="wr-n">Default</th></tr></thead>
+        <tbody>
+          <tr><td>Location search</td><td class="wr-p">Free text (city/address) or a raw "lat, lon" pair</td><td class="wr-d">—</td></tr>
+          <tr><td>Set Location on Map</td><td class="wr-p">Click anywhere on the basemap</td><td class="wr-d">—</td></tr>
+          <tr><td>UK location presets</td><td class="wr-p">London &middot; Sheffield (Doncaster Airport) &middot; Edinburgh (Turnhouse Airport)</td><td class="wr-d">London</td></tr>
+          <tr><td>EPW file upload</td><td class="wr-p">.epw file, any station</td><td class="wr-d">—</td></tr>
+          <tr><td>Basemap</td><td class="wr-p">Satellite &middot; Streets &middot; Hybrid &middot; Outdoor &middot; Bright &middot; Toner (B&amp;W)</td><td class="wr-d">Satellite</td></tr>
+        </tbody>
+        <caption>Location search and the basemap both call MapTiler over the network — see
+          <a href="#wr-s07">Limitations of this page</a> and <a href="#wr-s08">Licence</a>.</caption>
+      </table></div>
+
+      <h4>Reading the result</h4>
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Control</th><th class="wr-n">Range</th><th class="wr-n">Step</th><th class="wr-n">Default</th></tr></thead>
+        <tbody>
+          <tr><td>Month</td><td class="wr-n">All Year, or Jan–Dec</td><td class="wr-n">1 month</td><td class="wr-d">All Year</td></tr>
+          <tr><td>Wind Rose Size</td><td class="wr-n">50 – 300%</td><td class="wr-n">10%</td><td class="wr-d">100%</td></tr>
+          <tr><td>Palette</td><td class="wr-n">Sunset &middot; Ocean &middot; Classic</td><td class="wr-n">—</td><td class="wr-d">Sunset</td></tr>
+        </tbody>
+        <caption>Wind Rose Size rescales the whole drawing — hole, petals and grid rings together — it
+          does not touch a single frequency value. Classic's own code comment describes it as "a
+          darker take on the traditional Beaufort-style green to red scale" — a colour choice, not an
+          implementation of the Beaufort force scale.</caption>
+      </table></div>
+
+      <h4>A loaded building</h4>
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Control</th><th class="wr-n">Range</th><th class="wr-n">Step</th><th class="wr-n">Default</th></tr></thead>
+        <tbody>
+          <tr><td>Custom .obj import</td><td class="wr-n">Any .obj file</td><td class="wr-n">—</td><td class="wr-d">None loaded</td></tr>
+          <tr><td>Scale</td><td class="wr-n">25 – 300%</td><td class="wr-n">5%</td><td class="wr-d">100%</td></tr>
+          <tr><td>Rotate building</td><td class="wr-n">0 – 355°</td><td class="wr-n">5°</td><td class="wr-d">0°</td></tr>
+          <tr><td>Render style</td><td class="wr-n">Realistic &middot; Flat Shaded &middot; Wireframe &middot; Blueprint</td><td class="wr-n">—</td><td class="wr-d">Realistic</td></tr>
+        </tbody>
+        <caption>With nothing imported, the rose is drawn against a small fixed placeholder footprint
+          so it still renders at a sensible size.</caption>
+      </table></div>
+
+      <h4>Camera and export</h4>
+      <div class="wr-tbl"><table>
+        <thead><tr><th>Control</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td>2D/3D toggle</td><td class="wr-p">Tilts the camera between plan (0° pitch) and an oblique 45° view</td></tr>
+          <tr><td>Reset North</td><td class="wr-p">Returns map bearing to 0°</td></tr>
+          <tr><td>Screenshot</td><td class="wr-p">Captures the current view at twice the live render resolution (capped at 4096 px on the long edge), as PNG or JPEG</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>What is fixed, and not exposed</h4>
+      <p>The 16 direction sectors and their 22.5° width, the five speed-bin boundaries, the 0.5 m/s
+        calm threshold, and the 50 km wind-data/site divergence warning. Changing any of them means
+        changing the source.</p>
+    </div>
+  </div>
+
+  <!-- 06 -->
+  <div class="wr-sec" id="wr-s06">
+    <div class="wr-sechead"><span class="wr-secnum">06</span><h2>Three exercises</h2></div>
+    <div class="wr-secbody">
+      <p>Each teaches one principle using only the built-in presets — no upload needed — and takes ten
+        to fifteen minutes.</p>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 01</span>
+        <h3>The prevailing direction moves with the seasons</h3>
+        <ol class="wr-steps">
+          <li>Load the <b>London</b> preset.</li>
+          <li>Set the <b>Month</b> slider to <code>January</code> and note which direction has the tallest stack.</li>
+          <li>Move it to <code>July</code> and note the tallest direction again.</li>
+          <li>Switch back to <code>All Year</code> and compare both months against the annual shape.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> The annual rose is an average of twelve different
+          climates, and no single month necessarily resembles it. A façade opened for summer
+          ventilation on the annual prevailing direction may face entirely the wrong way for
+          infiltration and heat loss in January. Read the month you actually care about, not just
+          "All Year".</p>
+      </div>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 02</span>
+        <h3>A rose cannot tell you where a building is sheltered</h3>
+        <ol class="wr-steps">
+          <li>Load any preset, then import an <code>.obj</code> model — or leave the default
+            placeholder footprint in place.</li>
+          <li>Note the rose's shape and size.</li>
+          <li>Change the <b>Scale</b> slider from 100% to 250%, then back down to 50%.</li>
+          <li>Watch the rose while you do it.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> The rose's size changes with the building's
+          footprint; its shape — the only part that carries data — does not move at all, because
+          nothing about the geometry enters the binning. A rose has no idea a building is even
+          present, so it cannot show downwash, channelling, wake or shelter of any kind. Reading those
+          needs a flow tool — this tool's own sister application, Urban Wind Lab, solves exactly that,
+          on the explicit condition of accepting its own, quite different, set of caveats.</p>
+      </div>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 03</span>
+        <h3>The commonest direction is not the windiest one</h3>
+        <ol class="wr-steps">
+          <li>Load the <b>Edinburgh</b> preset, <code>All Year</code>.</li>
+          <li>Find the direction with the tallest total stack — the most frequent direction.</li>
+          <li>Look instead at which direction has the largest share sitting in the <code>6–8</code>
+            and <code>8+</code> bins specifically.</li>
+          <li>Compare the two directions.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> Frequency and energy are different quantities. A
+          direction that blows often but gently can carry less total wind than one that blows rarely
+          but hard — wind's momentum scales with the square of its speed, so a less frequent
+          high-speed direction can matter more for structural loading or driving rain than the
+          direction the petals make look dominant at a glance. The rose shows frequency directly; it
+          takes a second look to find energy.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 -->
+  <div class="wr-sec" id="wr-s07">
+    <div class="wr-sechead"><span class="wr-secnum">07</span><h2>Limitations of this page</h2></div>
+    <div class="wr-secbody">
+      <p>The sections above describe the tool. This one describes the <em>document</em>.</p>
+
+      <h3>Where each number came from</h3>
+      <dl class="wr-ledger">
+        <div><span class="wr-chip is-in">Read</span><dt>Read directly from the source</dt><dd>Every constant and range on this page — the 16 sectors, the 22.5° sector width and Math.round assignment, the five speed-bin boundaries, the 0.5 m/s calm threshold, the 8-line EPW header and its column indices, the missing-data sentinel, the three preset station names and WMO numbers, the 50 km divergence threshold, every input's range/step/default, and the licence and library facts in the footer.</dd></div>
+        <div><span class="wr-chip is-part">Derived</span><dt>Computed by the author from the source</dt><dd>That the petals sum to 100 minus the calm percentage, worked through from binGroup()'s own denominator; that the rose's drawing scale is set from the footprint radius, worked through from rebuildWindRose(); and the approximate Sheffield-preset-to-city-centre distance, computed using the tool's own haversine formula against a city-centre coordinate not itself found in the source.</dd></div>
+        <div><span class="wr-chip is-out">Absent</span><dt>Estimated or assumed</dt><dd>Nothing about the tool's behaviour. Where a claim would have needed an assumption the code does not supply, it was removed rather than estimated. The Sheffield distance is the one figure on this page computed from an external reference point, and it is labelled as such rather than presented as read from the code.</dd></div>
+      </dl>
+
+      <h3>What this page deliberately does not do</h3>
+      <p>It applies no meteorological correction of its own. Where the tool leaves EPW data uncorrected
+        for height, roughness or terrain, this page reports that gap; it does not fill it with a
+        worked example, because doing so would imply the tool performs a correction it does not.</p>
+
+      <h3>A gap the provenance rule leaves</h3>
+      <p>The reference list in the footer names the EPW format and TMYx as the code's own terms. It
+        does not, and cannot, name whichever sources actually informed the EPW parser or the embedded
+        presets while the tool was built — the code does not say, and this page will not guess. The
+        Sheffield-to-city-centre distance carries the same honesty gap from the other direction: it is
+        this page's own arithmetic, using a reference coordinate the code itself does not contain, and
+        it could not be checked against a live source in the environment where this page was
+        written.</p>
+
+      <h3>How the references were checked, and the limit on that</h3>
+      <p>Each entry was looked up rather than recalled. The network available while this page was
+        written could not reach outside sources to confirm them against a live, authoritative
+        record — the same limitation the sister document records for itself. Treat titles, years,
+        publishers and the Sheffield distance above as good but not independently confirmed, and check
+        anything you cite formally.</p>
+
+      <h3>And the tool itself is unvalidated</h3>
+      <p>No comparison against a published wind rose for the same station exists in the tool or
+        anywhere behind it — checked directly: no such comparison, benchmark or reference dataset
+        appears anywhere in the source.</p>
+
+      <h3>The tool is not self-contained</h3>
+      <p>The source embeds a MapTiler API key as a plain string in <span class="wr-mono">js/main.js</span>,
+        and the running tool makes network requests to MapTiler for both map tiles and location
+        search — visible to anyone who views the page's source. This is a real limitation of the
+        artefact, stated neutrally: it is not a single self-contained file the way its sister tool is.
+        The tool does still function without a working key or without network access at all —
+        confirmed directly: after 6 seconds without a loaded map style, the code falls back to a
+        blank, valid style, and the building and wind rose render fully; only the satellite/street
+        imagery underneath is missing.</p>
+    </div>
+  </div>
+
+  <div class="wr-footer">
+    <p>Everything on this page was read from the tool's source code or computed from it;
+      <a href="#wr-s07">Limitations of this page</a> says which figures are which, and by what method.
+      Where a figure would have needed a value the code does not contain, it was removed, or clearly
+      marked as the author's own calculation rather than presented as read from the source.</p>
+    <p>For a wind statement that must inform a real design decision, correct the data for height and
+      terrain before using it, and bring in a flow tool or a wind engineer for anything involving a
+      building's response to that wind. This tool is built to teach what a wind rose is and how one is
+      built from recorded data — nothing more, and it says so throughout.</p>
+
+    <h3 id="wr-s08">Licence</h3>
+    <p>© Karam Al-Obaidi. The app is licensed <b>MIT</b>; this documentation is
+      <b><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></b>.
+      Both permit any use, including commercial, and ask only that you credit the author.</p>
+    <p>Unlike its sister tool, <b>this application is not self-contained</b>. It loads two third-party
+      libraries at runtime — <b>MapLibre GL JS</b> (version 4.7.1, 3-Clause BSD licence, full text at
+      <a href="https://github.com/maplibre/maplibre-gl-js/blob/v4.7.1/LICENSE.txt" target="_blank" rel="noopener">github.com/maplibre/maplibre-gl-js</a>)
+      and <b>three.js</b> (MIT licence) — and it requests map tiles and location search results from
+      <b>MapTiler</b>, built on <b>OpenStreetMap</b> data. A 3-Clause BSD licence requires the
+      copyright notice and licence text to accompany any redistribution of the library itself;
+      MapTiler and OpenStreetMap's own terms require visible attribution wherever their data is
+      displayed. Practically, for anyone embedding this tool: leave the bundled libraries' own licence
+      notices as they are, and leave the map's attribution control in place.</p>
+    <p class="wr-note">The code does not strip that attribution control. It disables MapLibre's own
+      auto-added one and replaces it with its own — repositioned, and starting collapsed to a small
+      icon rather than the expanded text — but the required "© MapTiler © OpenStreetMap contributors"
+      notice (the code's own wording) is never altered or removed, only its starting visibility and
+      position. A viewer has to click the icon to see it on first load.</p>
+    <p>A model you analyse with the tool, and an EPW file you load into it, are <b>yours</b>. Neither
+      licence claims anything over your geometry or your uploaded weather data. An EPW file may carry
+      its own terms of use from whoever issued it.</p>
+
+    <h3>How to cite</h3>
+    <p>Cite it as software. Keeping the copyright notice in the file satisfies the licence; a citation
+      is the scholarly act on top of that.</p>
+    <p class="wr-ref">Al-Obaidi, K. M. (2026). <i>3D Wind Rose: A browser-based climate data and
+      building context viewer</i> (Version 1.0.0) [Computer software].
+      https://karam.me.uk/applications/3d-wind-rose/</p>
+<pre>@software{alobaidi20263dwindrose,
+  author  = {Al-Obaidi, Karam M.},
+  title   = {3D Wind Rose: A browser-based climate data
+             and building context viewer},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://karam.me.uk/applications/3d-wind-rose/},
+  note    = {MIT licensed}
+}</pre>
+    <p>Report the <b>station or file</b> the wind data came from, whether the figure is <b>annual or a
+      single month</b>, and the <b>calm percentage</b> alongside any reading from the petals — the
+      calm figure is what lets someone else check that your quoted percentages are internally
+      consistent (see <a href="#wr-s01">What it computes</a>).</p>
+
+    <h3>Origins of the methods the code names</h3>
+    <p><b>The source code cites no literature.</b> It contains no bibliography or reading list. What it
+      does contain are named things: a file format (<span class="wr-mono">EnergyPlus .epw</span>), a
+      data product (<span class="wr-mono">TMYx</span>), two runtime libraries
+      (<span class="wr-mono">MapLibre GL JS</span>, <span class="wr-mono">three.js</span>), and two
+      network services (<span class="wr-mono">MapTiler</span>, whose attribution comment also names
+      <span class="wr-mono">OpenStreetMap</span>).</p>
+    <p>The entries below are this page's identification of where those named things come from. They
+      are not a record of what was consulted while the tool was written — the code does not say, and
+      neither will this page. Against each entry is the exact term the code uses and where it uses
+      it, so the mapping can be checked rather than trusted.</p>
+
+    <p class="wr-ref">U.S. Department of Energy. <i>EnergyPlus weather file (EPW) data dictionary</i>,
+      in <i>Auxiliary Programs</i> (EnergyPlus documentation). Linked here via the
+      <a href="https://bigladdersoftware.com/epx/docs/23-2/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html" target="_blank" rel="noopener">Big Ladder Software mirror</a>,
+      a third party's copy, not a Department of Energy host — the official documentation is
+      distributed with EnergyPlus itself.<br>
+      <span class="wr-mono">— code: "the 'EnergyPlus Weather File (EPW) Data Dictionary'", js/epw.js header comment, alongside the column indices the parser reads</span></p>
+
+    <p class="wr-ref">National Renewable Energy Laboratory / White Box Technologies. <i>TMY3/TMYx
+      typical meteorological year data sets.</i><br>
+      <span class="wr-mono">— code: "TMYx EPW files", js/sample-data.js header comment, describing the
+      three embedded presets. <b>No single authoritative edition is confirmed here</b> — TMYx data
+      sets are compiled and redistributed by more than one source, and this page's network access
+      could not confirm which distribution the embedded data originates from; see
+      <a href="#wr-s07">Limitations of this page</a>.</span></p>
+
+    <p class="wr-ref">MapLibre GL JS. Version 4.7.1. 3-Clause BSD licence.
+      <a href="https://github.com/maplibre/maplibre-gl-js" target="_blank" rel="noopener">github.com/maplibre/maplibre-gl-js</a><br>
+      <span class="wr-mono">— code: index.html script tag, version pinned in the URL; the licence
+      banner inside the loaded file itself states "3-Clause BSD"</span></p>
+
+    <p class="wr-ref">three.js. Revision 128 (r128). MIT licence.
+      <a href="https://threejs.org" target="_blank" rel="noopener">threejs.org</a><br>
+      <span class="wr-mono">— code: index.html script tag, version pinned in the URL as
+      "three@0.128.0"</span></p>
+
+    <p class="wr-ref">MapTiler. Map tile and geocoding service.
+      <a href="https://www.maptiler.com" target="_blank" rel="noopener">maptiler.com</a><br>
+      <span class="wr-mono">— code: js/main.js, the MAPTILER_KEY constant and every
+      api.maptiler.com request, for both the map style and location search</span></p>
+
+    <p class="wr-ref">OpenStreetMap contributors.
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a><br>
+      <span class="wr-mono">— code: the attribution control's own text, "© MapTiler © OpenStreetMap
+      contributors", quoted verbatim in a js/main.js comment</span></p>
+
+    <p class="wr-note">"Beaufort" does not appear above. It occurs once in the source, in a code
+      comment describing one colour palette as "a darker take on the traditional Beaufort-style green
+      to red scale" — a description of a colour choice, not an implementation of the Beaufort force
+      scale (the tool's five speed-bin boundaries do not match Beaufort's), so no entry is given for
+      it — the same reasoning the sister document applies to a method the code names in passing but
+      does not implement.</p>
+
+    <h3>Further reading — not named by the code</h3>
+    <p>Nothing in this second list is named in the source, used by the tool, or relied on anywhere on
+      this page. <b>No claim above rests on any of it.</b> It is here for one reason: the list above
+      is a record of provenance, and provenance makes a poor starting point for a student. These will
+      actually teach the material.</p>
+
+    <p class="wr-ref">Troen, I., &amp; Petersen, E. L. (1989). <i>European Wind Atlas.</i> Risø
+      National Laboratory, Roskilde, Denmark.<br>
+      <span class="wr-mono">The standard reference for correcting station wind data to a site using
+      roughness and terrain — precisely the correction this tool does not perform. Read alongside
+      <a href="#wr-s04">How exact the numbers are</a>.</span></p>
+
+    <p class="wr-ref">Cook, N. J. (1985). <i>The Designer's Guide to Wind Loading of Building
+      Structures, Part 1: Background, Damage Survey, Wind Data and Structural Classification.</i>
+      Butterworths, London.<br>
+      <span class="wr-mono">Covers the terrain-roughness and height-correction methods this tool
+      leaves to the reader. Publisher and title given from the author's own recollection, not
+      independently confirmed here — check before citing formally.</span></p>
+
+    <p class="wr-ref">Givoni, B. (1998). <i>Climate Considerations in Building and Urban Design.</i>
+      Van Nostrand Reinhold, New York.<br>
+      <span class="wr-mono">Sets a wind rose in the context of an actual design decision — orientation,
+      opening placement, courtyard layout — which this page's exercises only gesture at.</span></p>
+
+    <p class="wr-cite">Every entry in both lists was looked up rather than recalled. The network
+      available while this page was written could not reach outside indexes or publisher sites to
+      confirm them against a live, authoritative record, so none has been independently reconfirmed
+      here. Check titles, years and publishers before citing formally.</p>
+  </div>
+
+</div>
