@@ -1,4 +1,7 @@
 /**
+ * 3D Wind Rose — palettes.js
+ * Version 1.0.0 — 2026-09-15
+ *
  * Named colour palettes for the wind speed bins. Switching palettes mutates
  * App.EPW.SPEED_BINS[i].color in place — every consumer (the wind rose mesh
  * builder, the legend renderer) reads .color fresh at build/render time, so

@@ -1,3 +1,8 @@
+/*
+ * 3D Wind Rose — stylesheet
+ * Version 1.0.0 — 2026-09-15
+ */
+
 :root {
   /* Light-themed app only — without this, native popups (e.g. the
      palette <select>'s option list) can render with the OS/browser's

@@ -1,4 +1,7 @@
 /**
+ * 3D Wind Rose — epw.js
+ * Version 1.0.0 — 2026-09-15
+ *
  * EPW (EnergyPlus Weather) file parsing.
  *
  * EPW files have 8 header lines followed by one CSV line per hour.
