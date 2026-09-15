@@ -1,0 +1,782 @@
+:root {
+  /* Light-themed app only — without this, native popups (e.g. the
+     palette <select>'s option list) can render with the OS/browser's
+     dark UA styling on dark-mode systems, flashing black on open. */
+  color-scheme: light;
+  --surface-1: #fbfbfa;
+  --surface-1-tint: rgba(251, 251, 250, 0.94);
+  --surface-2: rgba(20, 26, 23, 0.035);
+  --text-primary: #14171a;
+  --text-secondary: #565f5a;
+  --text-muted: #85897f;
+  --border: rgba(15, 20, 17, 0.1);
+  --border-strong: rgba(15, 20, 17, 0.2);
+  --accent: #2a78d6;
+  --accent-dark: #184f95;
+  --good: #0ca30c;
+  --sky-bottom: #dfe9ee;
+  --panel-radius: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Type scale */
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 12.5px;
+  --fs-md: 13px;
+  --fs-lg: 14.5px;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+
+  /* Elevation — tight contact shadow + soft ambient shadow */
+  --shadow-panel: 0 1px 2px rgba(11, 11, 11, 0.06), 0 10px 28px rgba(11, 11, 11, 0.10);
+  --shadow-modal: 0 2px 4px rgba(11, 11, 11, 0.08), 0 16px 44px rgba(11, 11, 11, 0.22);
+  --shadow-dropdown: 0 4px 10px rgba(11, 11, 11, 0.08), 0 10px 26px rgba(11, 11, 11, 0.16);
+  --accent-tint: rgba(42, 120, 214, 0.1);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  color: var(--text-primary);
+  background: var(--sky-bottom);
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+#map-container canvas { display: block; }
+
+/* MapLibre's own attribution control (top-right, kept out of the way of
+   the gizmo/hint-panel/copyright, which all live in the bottom corners). */
+.maplibregl-ctrl-top-right { top: 8px; right: 8px; }
+
+/* Shared panel look */
+.panel {
+  position: absolute;
+  z-index: 10;
+  background: var(--surface-1-tint);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-panel);
+  color: var(--text-primary);
+  pointer-events: auto;
+}
+
+.panel h2 {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+}
+
+.panel-body { padding: var(--sp-4) var(--sp-4); }
+
+/* Title bar */
+#title-bar {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+#title-bar .brand-mark { color: var(--accent); flex-shrink: 0; }
+#title-bar .title {
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  letter-spacing: -0.01em;
+  white-space: nowrap; /* left:50% (no right) caps shrink-to-fit at half the
+    viewport, which wraps this text on narrow screens without this */
+}
+
+.icon-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin-left: 2px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--accent); }
+.icon-btn:active { background: var(--accent-tint); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Screenshot preview dialog */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 26, 23, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal-overlay.open { display: flex; }
+.modal-panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-modal);
+  color: var(--text-primary);
+  width: 100%;
+  max-width: 480px;
+  padding: 16px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.modal-header h2 {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 0;
+}
+#screenshot-preview {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modal-actions .btn { width: auto; flex: 1; justify-content: center; }
+
+/* Unified sidebar: one bounded, internally-scrolling panel replacing the
+   three previously-independent floating panels. Height/width budget is
+   unconditional (no media-query gating) — it shares the bottom-left
+   corner with the legend overlay + copyright pill below it, so its
+   max-height reserves room for both (it scrolls internally rather than
+   growing into them) instead of colliding when several accordion
+   sections are open at once on a shorter viewport. */
+#sidebar {
+  top: 16px;
+  left: 16px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+}
+
+/* Accordion sections inside #sidebar */
+.accordion { border-bottom: 1px solid var(--border); }
+.accordion:last-child { border-bottom: none; }
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+.accordion-header::-webkit-details-marker { display: none; }
+.accordion-header::marker { content: ''; }
+.accordion-header:hover { background: var(--surface-2); }
+.accordion-header:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.accordion-title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.accordion-summary {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.accordion-header .chevron {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.15s;
+}
+.accordion[open] > .accordion-header .chevron { transform: rotate(180deg); }
+.accordion .panel-body { padding-top: 0; }
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.btn:hover { background: var(--surface-2); border-color: var(--accent); }
+.btn:active { background: var(--accent-tint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(42, 120, 214, 0.25);
+}
+.btn.primary:active { transform: translateY(0); box-shadow: none; }
+.btn.secondary { font-weight: 500; justify-content: center; }
+.btn .icon { flex-shrink: 0; }
+
+#epw-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  min-height: 18px;
+}
+#epw-status.error { color: #b8291f; }
+#epw-status .loc-name { font-weight: 700; color: var(--text-primary); }
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--sp-4) 0;
+}
+
+.panel h2 .h2-note {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+#uk-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+#uk-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+#uk-list li:hover { border-color: var(--border); }
+#uk-list .city-info { display: flex; flex-direction: column; min-width: 0; }
+#uk-list .city-name { font-size: 12.5px; font-weight: 600; }
+#uk-list .city-note { font-size: var(--fs-2xs); color: var(--text-muted); }
+.btn-load-city {
+  appearance: none;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-load-city:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.src-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.badge-recorded { background: rgba(12, 163, 12, 0.13); color: #0a7d0a; }
+.badge-representative { background: rgba(15, 20, 17, 0.08); color: var(--text-secondary); }
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.palette-row label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+/* Custom dropdown (replaces native <select> — a native select's option-
+   list popup could flash black over the WebGL canvas on some
+   browsers/platforms; this is plain DOM/CSS, no OS popup involved). */
+.custom-select { position: relative; }
+.custom-select-trigger {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.custom-select-trigger:hover { border-color: var(--accent); }
+.custom-select-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.custom-select-trigger .chevron { flex-shrink: 0; color: var(--text-secondary); transition: transform 0.15s; }
+.custom-select.open .custom-select-trigger .chevron { transform: rotate(180deg); }
+
+.custom-select-list {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow-dropdown);
+  max-height: 240px;
+  overflow-y: auto;
+  display: none;
+}
+.custom-select-list.open { display: block; }
+.custom-select-list li {
+  padding: 6px 9px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.custom-select-list li:hover,
+.custom-select-list li.active { background: var(--surface-2); }
+.custom-select-list li[aria-selected="true"] { font-weight: 700; color: var(--accent); }
+#legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+}
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  padding: 3px 0;
+}
+.legend-swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.legend-calm { background: #c3c2b7; }
+.legend-row .lbl { color: var(--text-primary); }
+.legend-note {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.legend-stats {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.legend-stats b { color: var(--text-primary); }
+.legend-source-note {
+  display: block;
+  font-style: italic;
+  color: var(--text-muted);
+}
+/* Wind-data / site-location divergence warning — deliberately not
+   italic/muted like a source note, so it reads as an actionable warning
+   rather than background context. */
+.legend-source-note.legend-warning {
+  font-style: normal;
+  font-weight: 600;
+  color: #a3341f;
+}
+
+.slider-group { margin-bottom: var(--sp-3); }
+.slider-group:last-child { margin-bottom: 0; }
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.slider-label .val { color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  height: 18px;
+  cursor: pointer;
+}
+.section-label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: var(--sp-4) 0 var(--sp-2);
+}
+.section-label:first-child { margin-top: 0; }
+
+.dims-disabled .slider-group:not(.always-enabled) { opacity: 0.4; }
+.dims-disabled input[type="range"]:disabled { cursor: not-allowed; }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -4px 0 var(--sp-3);
+  cursor: pointer;
+}
+.checkbox-row input[type="checkbox"] { margin: 0; }
+.checkbox-row.dimmed { opacity: 0.4; }
+
+#obj-status {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+#obj-status .loc-name { font-weight: 700; color: var(--text-primary); }
+
+.coord-readout {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border-radius: 6px;
+  padding: 6px 9px;
+  margin-bottom: var(--sp-2);
+}
+.coord-hint {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.location-search-row {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+.location-search-row .text-input { flex: 1; min-width: 0; }
+.location-search-row .btn { width: auto; flex-shrink: 0; padding: 7px 14px; justify-content: center; }
+
+.text-input {
+  appearance: none;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 7px 9px;
+}
+.text-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+/* Bottom-right: hint */
+#hint-panel {
+  right: 16px;
+  bottom: 16px;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+/* File inputs (hidden, triggered by button) */
+#epw-file-input, #obj-file-input { display: none; }
+
+/* Scrollbars inside panels */
+.panel::-webkit-scrollbar { width: 8px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+
+/* Compass label (CSS2D) — a solid backing chip (like .ring-label below)
+   rather than a translucent halo alone: over busy/high-detail satellite
+   imagery a soft white glow directly on the pixels reads as blur, while
+   an opaque chip guarantees legible contrast regardless of what's
+   underneath. */
+.compass-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #24344a;
+  background: rgba(251, 251, 250, 0.82);
+  padding: 1px 5px;
+  border-radius: 4px;
+  pointer-events: none;
+  user-select: none;
+}
+.compass-label.cardinal { font-size: 15px; }
+
+.ring-label {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #575f56;
+  background: rgba(251, 251, 250, 0.8);
+  padding: 0 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Orientation gizmo (bottom-right, above the hint bar) */
+#gizmo-panel {
+  right: 16px;
+  bottom: 58px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+#gizmo-needle {
+  width: 52px;
+  height: 52px;
+  color: var(--text-muted);
+  transition: transform 0.05s linear;
+}
+/* The inline SVG has no width/height attributes of its own (viewBox
+   only), so this is the sole sizing input — it always fills whatever
+   box #gizmo-needle currently has, at every breakpoint (52px desktop,
+   40px mobile, see the @media block below), with no competing
+   intrinsic size for any browser engine to fall back to. */
+#gizmo-needle svg { display: block; width: 100%; height: 100%; }
+
+/* Loading toast */
+#toast {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; }
+#toast.error { background: #f6d9d6; color: #7a1c14; border: 1px solid #e3aca5; }
+#toast.ok { background: #dcefe0; color: #14532d; border: 1px solid #a9d8b4; }
+
+/* Copyright notice — pinned to the bottom edge, above the legend overlay.
+   A pill background (matching the ring-label style) so it stays readable
+   over any basemap imagery, light or dark, instead of relying on
+   `text-muted` contrast against an arbitrary photo. */
+#copyright {
+  position: fixed;
+  left: 12px;
+  bottom: 8px;
+  z-index: 5;
+  font-size: 10.5px;
+  line-height: 1.4; /* explicit, not 'normal' — so the screenshot export's
+    canvas replay (which reads this via getComputedStyle) matches the
+    real on-screen line box instead of an approximation */
+  color: var(--text-primary);
+  background: rgba(251, 251, 250, 0.85);
+  padding: 3px 9px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-panel);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Always-visible legend overlay (bottom-left, above the copyright pill) —
+   reuses #legend-list/#legend-stats's own row/swatch/stats styling (same
+   classes, just a second render target) at a slightly smaller scale so it
+   stays unobtrusive over the 3D view. */
+#legend-overlay {
+  left: 16px;
+  bottom: 38px;
+  max-width: 220px;
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+}
+#legend-overlay #legend-overlay-list { gap: 2px 10px; }
+#legend-overlay .legend-row { font-size: 11px; gap: 5px; }
+#legend-overlay .legend-swatch { width: 12px; height: 12px; }
+#legend-overlay .legend-stats { font-size: 10px; margin-top: 4px; }
+
+
+/* ---------- Compact tier (phone + tablet-portrait): panels become
+   bottom sheets opened one at a time from a bottom tab bar, instead of
+   the desktop floating four-corner layout. Base "hidden" state for the
+   new elements lives outside the media query (so they never render
+   above 900px); everything that repositions the *existing* panels is
+   scoped inside it, so desktop is untouched. ---------- */
+#mobile-toolbar { display: none; }
+#mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  background: rgba(20, 26, 23, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+#mobile-backdrop.show { opacity: 1; pointer-events: auto; }
+
+@media (max-width: 900px) {
+  #sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 56px;
+    width: 100%;
+    max-width: none;
+    max-height: min(70vh, calc(100vh - 72px));
+    border-radius: 16px 16px 0 0;
+    background: var(--surface-1);
+    backdrop-filter: none;
+    box-shadow: var(--shadow-modal);
+    transform: translateY(calc(100% + 16px));
+    visibility: hidden;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.28s;
+    z-index: 16;
+  }
+  #sidebar.drawer-open {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0s;
+  }
+
+  #mobile-toolbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 56px;
+    z-index: 20;
+    background: var(--surface-1);
+    border-top: 1px solid var(--border);
+    justify-content: space-around;
+    align-items: stretch;
+  }
+  .mobile-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 48px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mobile-tab.active { color: var(--accent); }
+
+  /* Mouse-oriented copy doesn't apply to touch; the toolbar now signals
+     that controls exist. */
+  #hint-panel { display: none; }
+
+  /* The toolbar now occupies the bottom-right corner. */
+  #gizmo-panel { top: 64px; right: 12px; bottom: auto; width: 40px; height: 40px; }
+
+  /* MapLibre's own attribution control (top-right) would otherwise sit
+     directly under the centred title bar on narrow screens — push it
+     below instead, and cap its width so long attribution text doesn't
+     run into the gizmo circle beside it. */
+  .maplibregl-ctrl-top-right { top: 56px; right: 60px; max-width: calc(100vw - 70px); }
+  .maplibregl-ctrl-attrib { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #gizmo-needle { width: 40px; height: 40px; }
+
+  /* Clear the 56px toolbar. */
+  #copyright { bottom: 64px; left: 8px; font-size: 9px; }
+
+  /* The sidebar drawer already covers this content on narrow screens;
+     the always-on overlay would just add clutter above the toolbar. */
+  #legend-overlay { display: none; }
+}
+
