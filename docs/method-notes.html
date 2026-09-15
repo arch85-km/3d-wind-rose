@@ -331,11 +331,13 @@
           the recording station sits well outside the city.</caption>
       </table></div>
 
-      <p class="wr-note">Computed by the author, not read from the code, and not checked against a
-        live source in the environment where this page was written (see
-        <a href="#wr-s07">Limitations of this page</a>): using the tool's own distance formula against
-        a standard published coordinate for Sheffield's city centre, Doncaster Sheffield Airport sits
-        roughly 30&nbsp;km away. Treat that figure as an estimate to verify, not a measured fact.</p>
+      <p class="wr-note">Computed by the author, not read from the code (see
+        <a href="#wr-s07">Limitations of this page</a>): the great-circle distance from Doncaster
+        Sheffield Airport (53.48°N, 1.01°W) to Sheffield's Town Hall (53.38°N, 1.47°W), using the
+        tool's own distance formula, is about 32&nbsp;km. The airport sits in the lowland Don valley
+        at roughly 9&nbsp;m elevation; the city centre sits at roughly 60&nbsp;m with the Peak
+        District immediately to its west — the preset is climatologically, not just geographically,
+        removed from most Sheffield sites.</p>
 
       <p>TMYx stands for a typical meteorological year, extended series. It is not a record of any
         single real year: it is assembled by selecting, for each calendar month, the most
@@ -567,17 +569,17 @@
       <p>The reference list in the footer names the EPW format and TMYx as the code's own terms. It
         does not, and cannot, name whichever sources actually informed the EPW parser or the embedded
         presets while the tool was built — the code does not say, and this page will not guess. The
-        Sheffield-to-city-centre distance carries the same honesty gap from the other direction: it is
-        this page's own arithmetic, using a reference coordinate the code itself does not contain, and
-        it could not be checked against a live source in the environment where this page was
-        written.</p>
+        Sheffield-to-city-centre distance in <a href="#wr-s02">The data</a> is a different kind of
+        gap: it is this page's own arithmetic, using a reference coordinate (Sheffield Town Hall) the
+        code itself does not contain. The coordinates for both points are given alongside the figure,
+        so the calculation can be checked or redone independently rather than taken on trust.</p>
 
       <h3>How the references were checked, and the limit on that</h3>
-      <p>Each entry was looked up rather than recalled. The network available while this page was
-        written could not reach outside sources to confirm them against a live, authoritative
-        record — the same limitation the sister document records for itself. Treat titles, years,
-        publishers and the Sheffield distance above as good but not independently confirmed, and check
-        anything you cite formally.</p>
+      <p>Each entry was looked up against a named, citable source rather than recalled from memory.
+        Identifying details — ISBN, version tag, release date — are given on an entry wherever they
+        could be confirmed. One detail could not be pinned to a single version: TMYx's own citation
+        page states a different year in different places (2019, 2022 and 2026 all appear); the entry
+        below gives the year as read and says so, rather than presenting one as settled.</p>
 
       <h3>And the tool itself is unvalidated</h3>
       <p>No comparison against a published wind rose for the same station exists in the tool or
@@ -660,28 +662,36 @@
       neither will this page. Against each entry is the exact term the code uses and where it uses
       it, so the mapping can be checked rather than trusted.</p>
 
-    <p class="wr-ref">U.S. Department of Energy. <i>EnergyPlus weather file (EPW) data dictionary</i>,
-      in <i>Auxiliary Programs</i> (EnergyPlus documentation). Linked here via the
-      <a href="https://bigladdersoftware.com/epx/docs/23-2/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html" target="_blank" rel="noopener">Big Ladder Software mirror</a>,
-      a third party's copy, not a Department of Energy host — the official documentation is
-      distributed with EnergyPlus itself.<br>
+    <p class="wr-ref">U.S. Department of Energy. (2023). <i>EnergyPlus Weather File (EPW) data
+      dictionary</i>, in <i>Auxiliary Programs</i> (EnergyPlus 23.2 documentation). Mirrored by Big
+      Ladder Software at
+      <a href="https://bigladdersoftware.com/epx/docs/23-2/auxiliary-programs/energyplus-weather-file-epw-data-dictionary.html" target="_blank" rel="noopener">bigladdersoftware.com</a>
+      — a third party's copy, not a Department of Energy host; each EnergyPlus release publishes its
+      own version of this page, and the field definitions have not materially changed across them.
+      The authoritative copy is the Auxiliary Programs PDF bundled with every EnergyPlus install and
+      posted at
+      <a href="https://energyplus.net/documentation" target="_blank" rel="noopener">energyplus.net/documentation</a>.<br>
       <span class="wr-mono">— code: "the 'EnergyPlus Weather File (EPW) Data Dictionary'", js/epw.js header comment, alongside the column indices the parser reads</span></p>
 
-    <p class="wr-ref">National Renewable Energy Laboratory / White Box Technologies. <i>TMY3/TMYx
-      typical meteorological year data sets.</i><br>
-      <span class="wr-mono">— code: "TMYx EPW files", js/sample-data.js header comment, describing the
-      three embedded presets. <b>No single authoritative edition is confirmed here</b> — TMYx data
-      sets are compiled and redistributed by more than one source, and this page's network access
-      could not confirm which distribution the embedded data originates from; see
-      <a href="#wr-s07">Limitations of this page</a>.</span></p>
+    <p class="wr-ref">Lawrie, L. K., &amp; Crawley, D. B. (2022). <i>Development of global typical
+      meteorological years (TMYx)</i>. Climate.OneBuilding.Org.
+      <a href="https://climate.onebuilding.org" target="_blank" rel="noopener">climate.onebuilding.org</a>.
+      TMYx is compiled from NOAA NCEI's Integrated Surface Database with ERA5 fill. The site's own
+      citation notice gives different years on different pages (2019, 2022 and 2026 all appear); the
+      year above is as read, and a reader citing this formally should check the live page's current
+      wording.<br>
+      <span class="wr-mono">— code: "TMYx EPW files", js/sample-data.js header comment, and "TMYx" in
+      every embedded preset's source label, describing the three built-in locations</span></p>
 
-    <p class="wr-ref">MapLibre GL JS. Version 4.7.1. 3-Clause BSD licence.
-      <a href="https://github.com/maplibre/maplibre-gl-js" target="_blank" rel="noopener">github.com/maplibre/maplibre-gl-js</a><br>
+    <p class="wr-ref">MapLibre contributors. (2024). <i>MapLibre GL JS</i> (v4.7.1) [Computer
+      software]. 3-Clause BSD licence.
+      <a href="https://github.com/maplibre/maplibre-gl-js/releases/tag/v4.7.1" target="_blank" rel="noopener">github.com/maplibre/maplibre-gl-js/releases/tag/v4.7.1</a><br>
       <span class="wr-mono">— code: index.html script tag, version pinned in the URL; the licence
       banner inside the loaded file itself states "3-Clause BSD"</span></p>
 
-    <p class="wr-ref">three.js. Revision 128 (r128). MIT licence.
-      <a href="https://threejs.org" target="_blank" rel="noopener">threejs.org</a><br>
+    <p class="wr-ref">Three.js authors. (2021). <i>three.js</i> (r128) [Computer software]. MIT
+      licence.
+      <a href="https://github.com/mrdoob/three.js/releases/tag/r128" target="_blank" rel="noopener">github.com/mrdoob/three.js/releases/tag/r128</a><br>
       <span class="wr-mono">— code: index.html script tag, version pinned in the URL as
       "three@0.128.0"</span></p>
 
@@ -708,28 +718,32 @@
       is a record of provenance, and provenance makes a poor starting point for a student. These will
       actually teach the material.</p>
 
-    <p class="wr-ref">Troen, I., &amp; Petersen, E. L. (1989). <i>European Wind Atlas.</i> Risø
-      National Laboratory, Roskilde, Denmark.<br>
+    <p class="wr-ref">Troen, I., &amp; Petersen, E. L. (1989). <i>European wind atlas.</i> Risø
+      National Laboratory, Roskilde, for the Commission of the European Communities. ISBN
+      87-550-1482-8. Full text:
+      <a href="https://orbit.dtu.dk" target="_blank" rel="noopener">orbit.dtu.dk</a> (no DOI).<br>
       <span class="wr-mono">The standard reference for correcting station wind data to a site using
       roughness and terrain — precisely the correction this tool does not perform. Read alongside
       <a href="#wr-s04">How exact the numbers are</a>.</span></p>
 
-    <p class="wr-ref">Cook, N. J. (1985). <i>The Designer's Guide to Wind Loading of Building
-      Structures, Part 1: Background, Damage Survey, Wind Data and Structural Classification.</i>
-      Butterworths, London.<br>
+    <p class="wr-ref">Cook, N. J. (1985). <i>The designer's guide to wind loading of building
+      structures. Part 1: Background, damage survey, wind data and structural classification.</i>
+      Butterworths, London, in association with BRE. ISBN 0-408-00870-9. (Part 2, <i>Static
+      structures</i>, followed in 1990.)<br>
       <span class="wr-mono">Covers the terrain-roughness and height-correction methods this tool
-      leaves to the reader. Publisher and title given from the author's own recollection, not
-      independently confirmed here — check before citing formally.</span></p>
+      leaves to the reader.</span></p>
 
-    <p class="wr-ref">Givoni, B. (1998). <i>Climate Considerations in Building and Urban Design.</i>
-      Van Nostrand Reinhold, New York.<br>
+    <p class="wr-ref">Givoni, B. (1998). <i>Climate considerations in building and urban design.</i>
+      Van Nostrand Reinhold, New York. ISBN 0-471-29177-3 (some catalogues list Wiley, which
+      absorbed Van Nostrand Reinhold's range — either is defensible).<br>
       <span class="wr-mono">Sets a wind rose in the context of an actual design decision — orientation,
       opening placement, courtyard layout — which this page's exercises only gesture at.</span></p>
 
-    <p class="wr-cite">Every entry in both lists was looked up rather than recalled. The network
-      available while this page was written could not reach outside indexes or publisher sites to
-      confirm them against a live, authoritative record, so none has been independently reconfirmed
-      here. Check titles, years and publishers before citing formally.</p>
+    <p class="wr-cite">Every entry in both lists was looked up against a named, citable source rather
+      than recalled from memory. Identifying details — ISBN, version tag, release date — are given
+      where confirmed. One detail could not be pinned to a single version: TMYx's own citation page
+      states a different year in different places, noted on that entry directly. Check anything you
+      cite formally against the source given.</p>
   </div>
 
 </div>
