@@ -1641,6 +1641,59 @@
     });
   }
 
+  // ---------- High-resolution capture ----------
+  // The live canvas renders at whatever pixel ratio the browser already
+  // uses (often 1x on a non-retina display), so a screenshot captured
+  // straight off it looks soft compared to what a "download image" button
+  // implies. map.setPixelRatio() resizes only the canvas's internal
+  // drawing buffer, not its on-screen CSS size (confirmed against the
+  // vendored maplibre-gl.js source: it sets canvas.width/height to
+  // cssSize*pixelRatio while leaving canvas.style.width/height alone) —
+  // so bumping it briefly doesn't shift or flash anything on screen.
+  // Every overlay-drawing function above already derives its own scale
+  // from the canvas's actual pixel size vs. its CSS rect
+  // (buildScreenshotCanvas()'s `scale = w / canvasRect.width`), so they
+  // automatically render sharper too with no changes needed.
+  const EXPORT_MAX_DIMENSION = 4096; // stay safely under common WebGL framebuffer limits
+  const EXPORT_SCALE = 2; // multiplier over whatever the live pixel ratio already is
+
+  function waitForRepaint() {
+    return new Promise((resolve) => {
+      map.once('render', resolve);
+      map.triggerRepaint();
+    });
+  }
+
+  // Renders `fn` (expected to synchronously read pixels back off the
+  // shared canvas) at a temporarily higher resolution, then restores the
+  // live view exactly as it was — including on a thrown/rejected `fn`.
+  async function withHiResCanvas(fn) {
+    const livePixelRatio = map.getPixelRatio();
+    const longEdgeAtLiveRes = Math.max(mapContainer.clientWidth, mapContainer.clientHeight) * livePixelRatio;
+    const scaleCap = EXPORT_MAX_DIMENSION / longEdgeAtLiveRes;
+    const targetPixelRatio = livePixelRatio * Math.max(1, Math.min(EXPORT_SCALE, scaleCap));
+
+    if (targetPixelRatio <= livePixelRatio * 1.001) {
+      return fn(); // already at (or can't safely exceed) the cap
+    }
+
+    map.setPixelRatio(targetPixelRatio);
+    // Same fix resyncMapSize() above relies on: renderer.render() applies
+    // its own CACHED size as the viewport, overriding the fresh
+    // gl.viewport() call buildingLayer.render() makes — so our building/
+    // wind-rose would render at the old (smaller) size unless this cache
+    // is refreshed to match the canvas's new actual pixel dimensions.
+    if (renderer) renderer.setSize(renderer.domElement.width, renderer.domElement.height, false);
+    await waitForRepaint();
+    try {
+      return fn();
+    } finally {
+      map.setPixelRatio(livePixelRatio);
+      if (renderer) renderer.setSize(renderer.domElement.width, renderer.domElement.height, false);
+      map.triggerRepaint(); // restores the live view; no need to await this one
+    }
+  }
+
   function buildScreenshotCanvas() {
     const srcCanvas = renderer.domElement; // = map.getCanvas(); already holds the composited map + building frame
     const w = srcCanvas.width, h = srcCanvas.height;
@@ -1686,8 +1739,8 @@
   const screenshotModal = document.getElementById('screenshot-modal');
   const screenshotPreview = document.getElementById('screenshot-preview');
 
-  function openScreenshotModal() {
-    const canvas = buildScreenshotCanvas();
+  async function openScreenshotModal() {
+    const canvas = await withHiResCanvas(() => buildScreenshotCanvas());
     const previewUrl = safeDataURL(canvas, 'image/png');
     if (!previewUrl) return;
     const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
@@ -1741,11 +1794,14 @@
   });
 
   document.getElementById('btn-screenshot').addEventListener('click', () => {
-    try {
-      openScreenshotModal();
-    } catch (err) {
+    // openScreenshotModal() is async (it briefly bumps the render
+    // resolution and awaits a real repaint before capturing) — a
+    // synchronous try/catch around the call wouldn't see a rejection
+    // from inside it, so this needs a .catch() instead.
+    openScreenshotModal().catch((err) => {
+      console.error('Screenshot capture failed:', err);
       showToast('Could not build screenshot', 'error');
-    }
+    });
   });
   document.getElementById('btn-save-png').addEventListener('click', () => saveScreenshotAs('png'));
   document.getElementById('btn-save-jpeg').addEventListener('click', () => saveScreenshotAs('jpeg'));

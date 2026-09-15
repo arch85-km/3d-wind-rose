@@ -115,6 +115,19 @@ html, body {
   white-space: nowrap; /* left:50% (no right) caps shrink-to-fit at half the
     viewport, which wraps this text on narrow screens without this */
 }
+/* Small, muted version tag — deliberately separate from both the main
+   title text (kept as plain "3D Wind Rose") and the on-screen copyright
+   pill (js/main.js sets #copyright, elsewhere on the page). Hover/long-
+   press for the release date via its native title tooltip. */
+#title-bar .version-tag {
+  font-size: var(--fs-2xs);
+  color: var(--text-secondary);
+  opacity: 0.6;
+  white-space: nowrap;
+  margin-left: -2px;
+  padding-left: 7px;
+  border-left: 1px solid var(--border);
+}
 
 .icon-btn {
   appearance: none;
