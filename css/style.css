@@ -67,7 +67,20 @@ html, body {
   z-index: 1;
 }
 
-#map-container canvas { display: block; }
+/* will-change forces this canvas onto its own GPU compositing layer.
+   The user found that exporting a screenshot of the live canvas (a raw
+   GPU readback via toDataURL, bypassing the browser's own compositor
+   entirely) correctly shows the wind rose even while the on-screen view
+   doesn't — proof the WebGL rendering itself is correct and the actual
+   framebuffer holds the right pixels, and that the bug is specifically
+   the compositor failing to redisplay an updated frame from this canvas.
+   That's a known category of mobile browser bug (worse inside an iframe,
+   which is how this app is normally embedded), and forcing a dedicated
+   compositing layer is the standard, well-established fix — the browser
+   handles a promoted layer's redraws through a different, more reliable
+   path than an ordinary in-flow element sharing a layer with everything
+   around it. */
+#map-container canvas { display: block; will-change: transform; }
 
 /* MapLibre's own attribution control (top-right, kept out of the way of
    the gizmo/hint-panel/copyright, which all live in the bottom corners). */
