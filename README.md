@@ -48,6 +48,6 @@ placeholder in anything you push back to this repo.
 - **Code** (`index.html`, `css/`, `js/`) is licensed under the [MIT
   License](LICENSE).
 - **Accompanying material** — documentation pages, screenshots, and
-  exercises — is licensed under [CC BY 4.0](LICENSE-CONTENT).
+  exercises — is licensed under [CC BY 4.0](DOCS-LICENCE.md).
 
 Copyright © Karam Al-Obaidi.
