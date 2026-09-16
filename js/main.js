@@ -295,6 +295,33 @@
     }
   }
 
+  // Mobile browsers (iOS Safari in particular) reclaim WebGL contexts under
+  // memory pressure far more aggressively than desktop — and this app's
+  // heaviest memory user by far is a basemap style with real 3D building
+  // geometry/textures (e.g. streets, unlike a flat satellite raster), so a
+  // context loss here is disproportionately more likely on Streets than on
+  // Satellite. This is very plausibly what "renders once, then vanishes"
+  // on mobile actually is: not a one-off depth/blend state issue (already
+  // handled above), but the GL context itself dying mid-session. Per spec,
+  // calling preventDefault() here is required for the browser to attempt
+  // restoration at all — without it, a lost context is permanent. MapLibre
+  // recovers its own style/layers on 'webglcontextrestored', but a custom
+  // layer's `renderer` (and everything three.js cached against the dead
+  // context) is ours to rebuild: null it out so render() no-ops safely in
+  // the meantime, then remove+re-add the layer so onAdd() runs again
+  // against the restored context.
+  map.getCanvas().addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    renderer = null;
+  }, false);
+  map.getCanvas().addEventListener('webglcontextrestored', () => {
+    try {
+      if (map.getLayer(buildingLayer.id)) map.removeLayer(buildingLayer.id);
+    } catch (err) { /* already gone */ }
+    ensureBuildingLayer();
+    map.triggerRepaint();
+  }, false);
+
   let mapLoaded = false;
   map.once('load', () => {
     mapLoaded = true;
