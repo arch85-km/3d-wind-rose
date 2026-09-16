@@ -8,6 +8,72 @@
 (function () {
   const { Building, WindRose, EPW, SampleData, Palettes } = window.App;
 
+  // ---------- TEMPORARY diagnostics (controlled test build) ----------
+  // Six independent, individually well-reasoned fixes for a mobile-only
+  // "renders once, then invisible" bug have all failed to change the
+  // outcome on the one real failing device available (a Galaxy S22
+  // Ultra) — including one, the compositing-layer hint, that looked
+  // confirmed for a round of testing before turning out to be a false
+  // positive: the previous debug panel's own periodic on-screen text
+  // update was itself a DOM mutation that happened to mask the bug,
+  // which is exactly the kind of confound this version is built to
+  // avoid. Each candidate fix now sits behind its own URL flag so they
+  // can be tested in isolation, including a true do-nothing baseline
+  // (no flags at all) that has never actually been tested up to now.
+  // The panel below only writes to the DOM in response to a real event
+  // or an actual change, never on a fixed timer regardless of outcome —
+  // so simply having it open cannot itself be a nudge.
+  const urlFlags = new URLSearchParams(location.search);
+  const FLAG_NUDGE = urlFlags.get('nudge') === '1';
+  const FLAG_REPAINT = urlFlags.get('repaint') === '1';
+  const FLAG_COMPOSITE = urlFlags.get('composite') === '1';
+
+  const debugLines = [];
+  const debugHud = document.createElement('div');
+  debugHud.id = 'debug-hud';
+  debugHud.style.cssText = 'position:fixed;bottom:4px;right:4px;max-width:94vw;max-height:45vh;overflow:auto;background:rgba(0,0,0,0.85);color:#3f3;font:10px/1.35 monospace;padding:6px 8px;z-index:999999;';
+  const debugCopyBtn = document.createElement('button');
+  debugCopyBtn.type = 'button';
+  debugCopyBtn.textContent = 'Copy log';
+  debugCopyBtn.style.cssText = 'display:block;margin-bottom:4px;font:11px sans-serif;padding:5px 10px;background:#3f3;color:#000;border:none;border-radius:3px;';
+  const debugText = document.createElement('div');
+  debugText.style.cssText = 'white-space:pre-wrap;';
+  debugHud.appendChild(debugCopyBtn);
+  debugHud.appendChild(debugText);
+  document.body.appendChild(debugHud);
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (err) { /* nothing else to try */ }
+    document.body.removeChild(ta);
+  }
+  debugCopyBtn.addEventListener('click', () => {
+    const text = debugLines.join('\n');
+    const done = () => {
+      debugCopyBtn.textContent = 'Copied!';
+      setTimeout(() => { debugCopyBtn.textContent = 'Copy log'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
+  });
+  const debugStart = performance.now();
+  function debugLog(msg) {
+    const t = (performance.now() - debugStart).toFixed(0);
+    debugLines.push(`[${t}ms] ${msg}`);
+    if (debugLines.length > 50) debugLines.shift();
+    debugText.textContent = debugLines.join('\n');
+    console.log('[wind-rose debug]', t + 'ms', msg);
+  }
+  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE}`);
+
   // ---------- Map basemap config ----------
   // A free MapTiler API key is required for the live map basemap (both
   // Satellite and Streets) to actually display tiles — sign up free at
@@ -157,6 +223,7 @@
   // the fill-rate cost), using the same map.setPixelRatio() API this file
   // already relies on elsewhere for the screenshot feature.
   map.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  if (FLAG_COMPOSITE) map.getCanvas().classList.add('composite-hint');
   const attributionControl = new maplibregl.AttributionControl({ compact: true });
   map.addControl(attributionControl, 'top-right');
   // A compact AttributionControl starts in its expanded "compact-show"
@@ -192,30 +259,24 @@
   // wind rose even while the live view didn't) but the browser's own
   // compositor stops picking up new frames from it shortly after it
   // renders once — a known mobile bug, worse inside an iframe (how this
-  // app is normally embedded).
-  //
-  // A periodic map.triggerRepaint() alone (tried first) didn't fix it —
-  // which is itself informative: that only asks for more WebGL draws on
-  // the GPU-process side, through whatever signalling path already isn't
-  // reaching the compositor. It never touches the page's own DOM/layout/
-  // paint pipeline. The one thing that DID coincide with this working,
-  // even if unintentionally, was the earlier debug panel's habit of
-  // rewriting a visible text node every few seconds — a real DOM
-  // mutation, going through the browser's main-thread paint/composite
-  // path, which is a mechanically different route to "recomposite the
-  // page" than asking WebGL to draw more. This replicates that
-  // deliberately instead of relying on a visible side effect: an
-  // off-screen node whose text content changes on a short interval, to
-  // keep forcing a real (if invisible) paint/composite pass without
-  // reintroducing the unconditional 60fps self-repaint loop already
-  // removed elsewhere in this file for the sluggishness it caused.
-  const compositorNudge = document.createElement('div');
-  compositorNudge.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0.01;pointer-events:none;';
-  document.body.appendChild(compositorNudge);
-  setInterval(() => {
-    map.triggerRepaint();
-    compositorNudge.textContent = String(performance.now());
-  }, 500);
+  // app is normally embedded). Neither candidate fix tried so far
+  // (map.triggerRepaint() alone; an off-screen DOM-mutation nudge
+  // replicating what an earlier debug panel did by accident) has been
+  // confirmed to actually change the outcome — both are gated behind
+  // their own URL flag here (?repaint=1, ?nudge=1) so they can be tested
+  // in isolation, including a true do-nothing baseline with neither flag
+  // set, which has never actually been tested up to now.
+  if (FLAG_NUDGE || FLAG_REPAINT) {
+    const compositorNudge = FLAG_NUDGE ? document.createElement('div') : null;
+    if (compositorNudge) {
+      compositorNudge.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0.01;pointer-events:none;';
+      document.body.appendChild(compositorNudge);
+    }
+    setInterval(() => {
+      if (FLAG_REPAINT) map.triggerRepaint();
+      if (compositorNudge) compositorNudge.textContent = String(performance.now());
+    }, 500);
+  }
 
   // Places the whole three.js scene at state.siteLngLat, scaled so 1 scene
   // unit = 1 real-world metre (matches the building's existing meter-based
@@ -227,6 +288,8 @@
     type: 'custom',
     renderingMode: '3d',
     onAdd(mapInstance, gl) {
+      window.__onAddCount = (window.__onAddCount || 0) + 1;
+      debugLog(`onAdd #${window.__onAddCount}, contextLost=${gl.isContextLost()}`);
       renderer = new THREE.WebGLRenderer({
         canvas: mapInstance.getCanvas(),
         context: gl,
@@ -308,10 +371,16 @@
         renderer.resetState();
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
+        window.__renderOkCount = (window.__renderOkCount || 0) + 1;
+        if (window.__renderOkCount === 1) {
+          const c = gl.canvas;
+          debugLog(`first render ok: drawBuf=${gl.drawingBufferWidth}x${gl.drawingBufferHeight} canvas=${c.width}x${c.height} client=${c.clientWidth}x${c.clientHeight} dpr=${window.devicePixelRatio} sceneChildren=${scene.children.length} windroseGroup=${state.windroseGroup ? (state.windroseGroup.visible + '/' + state.windroseGroup.children.length + 'ch') : 'null'} glErr=${gl.getError()}`);
+        }
       } catch (err) {
         // MapLibre swallows exceptions thrown from inside a custom layer's
         // render() internally, so without this the building/wind rose would
         // just silently stop appearing with zero visible indication why.
+        debugLog('render() threw: ' + (err && (err.message || err)));
         if (!window.__buildingLayerErrorShown) {
           window.__buildingLayerErrorShown = true;
           console.error('buildingLayer render error:', err);
@@ -361,9 +430,11 @@
   // against the restored context.
   map.getCanvas().addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
+    debugLog('webglcontextlost');
     renderer = null;
   }, false);
   map.getCanvas().addEventListener('webglcontextrestored', () => {
+    debugLog('webglcontextrestored');
     try {
       if (map.getLayer(buildingLayer.id)) map.removeLayer(buildingLayer.id);
     } catch (err) { /* already gone */ }
@@ -374,8 +445,26 @@
   let mapLoaded = false;
   map.once('load', () => {
     mapLoaded = true;
+    debugLog('map "load" fired');
     ensureBuildingLayer();
   });
+  map.on('idle', () => debugLog('map "idle" fired (tiles settled)'));
+  map.on('error', (e) => debugLog('map "error": ' + (e && e.error && e.error.message || e)));
+
+  // Read-only stall detector: samples the render count every 5s and only
+  // writes a log line when it actually changed since the last sample —
+  // unlike the earlier debug panel's unconditional periodic write, a
+  // sample that finds no change writes nothing, so this cannot itself be
+  // a compositor nudge. Distinguishes "still rendering, just not visible"
+  // from "stopped being called at all" without needing a fix guess.
+  let __lastSampledRenderCount = 0;
+  setInterval(() => {
+    const c = window.__renderOkCount || 0;
+    if (c !== __lastSampledRenderCount) {
+      debugLog(`render count now ${c} (was ${__lastSampledRenderCount})`);
+      __lastSampledRenderCount = c;
+    }
+  }, 5000);
 
   // Fallback for a missing/invalid key or being offline: if the real style
   // hasn't made ANY progress within a few seconds, fall back to a
