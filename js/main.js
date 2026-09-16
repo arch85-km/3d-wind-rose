@@ -88,6 +88,36 @@
 
   let renderer = null; // created once MapLibre hands us its GL context, in buildingLayer.onAdd
 
+  // ---------- TEMPORARY diagnostics ----------
+  // Reported on real mobile devices/browsers, not reproducible in the dev
+  // sandbox used to build this (no network there to load real tiles): the
+  // wind rose renders once, then disappears right as the map's tiles
+  // finish loading. Two targeted fixes (GL depth-state reset, WebGL
+  // context-loss recovery) didn't change the symptom, so rather than guess
+  // again blindly this logs exactly what the device itself is doing to a
+  // small on-screen panel — read it off (or screenshot it) after
+  // reproducing the bug. Safe to delete once the real cause is found.
+  const debugLines = [];
+  const debugHud = document.createElement('div');
+  debugHud.id = 'debug-hud';
+  debugHud.style.cssText = 'position:fixed;bottom:4px;right:4px;max-width:94vw;max-height:45vh;overflow:auto;background:rgba(0,0,0,0.8);color:#3f3;font:10px/1.35 monospace;padding:6px 8px;z-index:999999;white-space:pre-wrap;pointer-events:none;';
+  document.body.appendChild(debugHud);
+  const debugStart = performance.now();
+  function debugLog(msg) {
+    const t = (performance.now() - debugStart).toFixed(0);
+    debugLines.push(`[${t}ms] ${msg}`);
+    if (debugLines.length > 50) debugLines.shift();
+    debugHud.textContent = debugLines.join('\n');
+    console.log('[wind-rose debug]', t + 'ms', msg);
+  }
+  window.addEventListener('error', (e) => debugLog('window error: ' + e.message));
+  let __lastHeartbeatRenderCount = 0;
+  setInterval(() => {
+    const c = window.__renderOkCount || 0;
+    debugLog(`heartbeat: renderOkCount=${c} (+${c - __lastHeartbeatRenderCount}) onAddCount=${window.__onAddCount || 0}`);
+    __lastHeartbeatRenderCount = c;
+  }, 3000);
+
   // MapTiler's hosted style.json (their documented MapLibre integration
   // path) — handles sources/layers/glyphs/sprites internally, so no
   // custom raster source wiring is needed here. Style ids are MapTiler's
@@ -178,6 +208,8 @@
     type: 'custom',
     renderingMode: '3d',
     onAdd(mapInstance, gl) {
+      window.__onAddCount = (window.__onAddCount || 0) + 1;
+      debugLog(`onAdd #${window.__onAddCount}, contextLost=${gl.isContextLost()}`);
       renderer = new THREE.WebGLRenderer({
         canvas: mapInstance.getCanvas(),
         context: gl,
@@ -259,10 +291,20 @@
         renderer.resetState();
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
+        window.__renderOkCount = (window.__renderOkCount || 0) + 1;
+        if (window.__renderOkCount === 1) {
+          const c = gl.canvas;
+          debugLog(`first render ok: drawBuf=${gl.drawingBufferWidth}x${gl.drawingBufferHeight} canvas=${c.width}x${c.height} client=${c.clientWidth}x${c.clientHeight} dpr=${window.devicePixelRatio} sceneChildren=${scene.children.length} windroseGroup=${state.windroseGroup ? (state.windroseGroup.visible + '/' + state.windroseGroup.children.length + 'ch') : 'null'} glErr=${gl.getError()}`);
+        }
+        if (window.__renderOkCount % 90 === 0) {
+          const e = gl.getError();
+          if (e !== gl.NO_ERROR) debugLog(`gl.getError()=${e} at renderOkCount=${window.__renderOkCount}`);
+        }
       } catch (err) {
         // MapLibre swallows exceptions thrown from inside a custom layer's
         // render() internally, so without this the building/wind rose would
         // just silently stop appearing with zero visible indication why.
+        debugLog('render() threw: ' + (err && (err.message || err)));
         if (!window.__buildingLayerErrorShown) {
           window.__buildingLayerErrorShown = true;
           console.error('buildingLayer render error:', err);
@@ -312,9 +354,11 @@
   // against the restored context.
   map.getCanvas().addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
+    debugLog('webglcontextlost');
     renderer = null;
   }, false);
   map.getCanvas().addEventListener('webglcontextrestored', () => {
+    debugLog('webglcontextrestored');
     try {
       if (map.getLayer(buildingLayer.id)) map.removeLayer(buildingLayer.id);
     } catch (err) { /* already gone */ }
@@ -325,15 +369,30 @@
   let mapLoaded = false;
   map.once('load', () => {
     mapLoaded = true;
+    debugLog('map "load" fired');
     ensureBuildingLayer();
   });
+  map.on('idle', () => debugLog('map "idle" fired (tiles settled)'));
+  map.on('error', (e) => debugLog('map "error": ' + (e && e.error && e.error.message || e)));
 
-  // Fallback for a missing/invalid key or being offline: if the real
-  // style hasn't finished loading within a few seconds, fall back to a
+  // Fallback for a missing/invalid key or being offline: if the real style
+  // hasn't made ANY progress within a few seconds, fall back to a
   // guaranteed-valid empty style so the building/wind rose still render
-  // (just without basemap imagery), rather than waiting forever.
+  // (just without basemap imagery), rather than waiting forever. Gated on
+  // "no progress at all" rather than "not fully loaded yet" — a slow but
+  // working connection could still be mid-download at 6s, and swapping the
+  // style out from under it mid-flight is exactly the failure mode already
+  // hit once before (see the comment on the real-style-first change above):
+  // rendering once, then vanishing for good when the torn-down style's
+  // resources finish arriving. Any 'data' event at all (a tile, the style
+  // JSON, glyphs, sprite) is proof the key/network are fine and it's just
+  // slow, so once we've seen one, never mind waiting for 'load' — this
+  // timeout does nothing further and the style is left alone to finish.
+  let anyDataReceived = false;
+  map.once('data', () => { anyDataReceived = true; debugLog('first "data" event (key/network OK)'); });
   setTimeout(() => {
-    if (!mapLoaded) {
+    debugLog(`6s fallback check: mapLoaded=${mapLoaded} anyDataReceived=${anyDataReceived}`);
+    if (!mapLoaded && !anyDataReceived) {
       map.once('load', ensureBuildingLayer);
       map.setStyle(EMPTY_STYLE);
       showToast('Add a free MapTiler API key in js/main.js to see live map imagery', 'error');
