@@ -97,17 +97,53 @@
   // again blindly this logs exactly what the device itself is doing to a
   // small on-screen panel — read it off (or screenshot it) after
   // reproducing the bug. Safe to delete once the real cause is found.
+  // A screenshot of this panel turned out to be blocked on at least one
+  // real device (OS/MDM-level screen-capture restriction, unrelated to
+  // this app) — so the log needs to be extractable without a screenshot.
+  // A tap-to-copy button puts it on the clipboard as plain text instead,
+  // to paste directly into a message.
   const debugLines = [];
   const debugHud = document.createElement('div');
   debugHud.id = 'debug-hud';
-  debugHud.style.cssText = 'position:fixed;bottom:4px;right:4px;max-width:94vw;max-height:45vh;overflow:auto;background:rgba(0,0,0,0.8);color:#3f3;font:10px/1.35 monospace;padding:6px 8px;z-index:999999;white-space:pre-wrap;pointer-events:none;';
+  debugHud.style.cssText = 'position:fixed;bottom:4px;right:4px;max-width:94vw;max-height:45vh;overflow:auto;background:rgba(0,0,0,0.85);color:#3f3;font:10px/1.35 monospace;padding:6px 8px;z-index:999999;';
+  const debugCopyBtn = document.createElement('button');
+  debugCopyBtn.type = 'button';
+  debugCopyBtn.textContent = 'Copy log';
+  debugCopyBtn.style.cssText = 'display:block;margin-bottom:4px;font:11px sans-serif;padding:5px 10px;background:#3f3;color:#000;border:none;border-radius:3px;';
+  const debugText = document.createElement('div');
+  debugText.style.cssText = 'white-space:pre-wrap;';
+  debugHud.appendChild(debugCopyBtn);
+  debugHud.appendChild(debugText);
   document.body.appendChild(debugHud);
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (err) { /* nothing else to try */ }
+    document.body.removeChild(ta);
+  }
+  debugCopyBtn.addEventListener('click', () => {
+    const text = debugLines.join('\n');
+    const done = () => {
+      debugCopyBtn.textContent = 'Copied!';
+      setTimeout(() => { debugCopyBtn.textContent = 'Copy log'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
+  });
   const debugStart = performance.now();
   function debugLog(msg) {
     const t = (performance.now() - debugStart).toFixed(0);
     debugLines.push(`[${t}ms] ${msg}`);
     if (debugLines.length > 50) debugLines.shift();
-    debugHud.textContent = debugLines.join('\n');
+    debugText.textContent = debugLines.join('\n');
     console.log('[wind-rose debug]', t + 'ms', msg);
   }
   window.addEventListener('error', (e) => debugLog('window error: ' + e.message));
