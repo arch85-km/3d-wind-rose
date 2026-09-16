@@ -168,6 +168,25 @@
     preserveDrawingBuffer: true,
     attributionControl: false,
   });
+  // Cap the pixel ratio instead of running at the device's raw
+  // devicePixelRatio (as high as ~3.5-4 on some high-density phone
+  // panels): the shared canvas's actual drawing-buffer pixel count is
+  // CSS size × dpr², and pushing that past a GPU/browser-specific area
+  // limit makes some mobile drivers silently clamp the real
+  // drawingBufferWidth/Height to something smaller than what MapLibre
+  // still thinks the canvas is — see e.g. iOS Safari's documented ~16.7M
+  // pixel canvas-area cap. MapLibre's own tile rendering tends to survive
+  // that mismatch invisibly, but our custom layer's projection matrix
+  // (built from MapLibre's assumed size) would then be correct for the
+  // wrong buffer size, plausibly projecting the wind rose off-screen or
+  // degenerately scaled — network access isn't available in this sandbox
+  // to confirm this is exactly what's happening on the higher-resolution
+  // device where this has been reported, but capping this is a safe,
+  // well-established mobile WebGL practice regardless (2x is already
+  // visually indistinguishable from 3-4x on a phone, for a fraction of
+  // the fill-rate cost), using the same map.setPixelRatio() API this file
+  // already relies on elsewhere for the screenshot feature.
+  map.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   const attributionControl = new maplibregl.AttributionControl({ compact: true });
   map.addControl(attributionControl, 'top-right');
   // A compact AttributionControl starts in its expanded "compact-show"
