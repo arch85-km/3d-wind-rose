@@ -11,6 +11,16 @@ built-in UK city presets (London, Sheffield, Edinburgh).
 No build step, no bundler — `index.html` loads Three.js and MapLibre GL JS
 from a CDN, plus this repo's own `css/style.css` and `js/*.js` files.
 
+## A note on this repo's history
+
+The first commit in this repo introduces the app already complete,
+rather than building it up commit by commit — it's a reconstruction
+from a working build, not the original development history. The
+app's actual step-by-step development happened earlier, in a
+different environment, and that history no longer exists to bring
+across. Every commit after the first one *is* genuine incremental
+history, made directly in this repo.
+
 ## Version
 
 **1.0.0** — 2026-09-15
