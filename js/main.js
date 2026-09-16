@@ -192,19 +192,30 @@
   // wind rose even while the live view didn't) but the browser's own
   // compositor stops picking up new frames from it shortly after it
   // renders once — a known mobile bug, worse inside an iframe (how this
-  // app is normally embedded). will-change on the canvas (see
-  // css/style.css) asks for a dedicated compositing layer, but doesn't by
-  // itself make the browser notice new WebGL content landed in an
-  // already-promoted layer if that's the actual gap. A cheap, low-
-  // frequency nudge closes it: forcing a real repaint periodically gives
-  // the browser a fresh reason to recomposite, without reintroducing the
-  // unconditional 60fps self-repaint loop already removed elsewhere in
-  // this file for the sluggishness it caused. Once a second is far below
-  // that cost and, unlike the on-screen debug panel that was masking this
-  // bug for one round of testing by coincidentally doing the same thing
-  // via its own DOM updates, this is a deliberate fix instead of a side
-  // effect.
-  setInterval(() => map.triggerRepaint(), 1000);
+  // app is normally embedded).
+  //
+  // A periodic map.triggerRepaint() alone (tried first) didn't fix it —
+  // which is itself informative: that only asks for more WebGL draws on
+  // the GPU-process side, through whatever signalling path already isn't
+  // reaching the compositor. It never touches the page's own DOM/layout/
+  // paint pipeline. The one thing that DID coincide with this working,
+  // even if unintentionally, was the earlier debug panel's habit of
+  // rewriting a visible text node every few seconds — a real DOM
+  // mutation, going through the browser's main-thread paint/composite
+  // path, which is a mechanically different route to "recomposite the
+  // page" than asking WebGL to draw more. This replicates that
+  // deliberately instead of relying on a visible side effect: an
+  // off-screen node whose text content changes on a short interval, to
+  // keep forcing a real (if invisible) paint/composite pass without
+  // reintroducing the unconditional 60fps self-repaint loop already
+  // removed elsewhere in this file for the sluggishness it caused.
+  const compositorNudge = document.createElement('div');
+  compositorNudge.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0.01;pointer-events:none;';
+  document.body.appendChild(compositorNudge);
+  setInterval(() => {
+    map.triggerRepaint();
+    compositorNudge.textContent = String(performance.now());
+  }, 500);
 
   // Places the whole three.js scene at state.siteLngLat, scaled so 1 scene
   // unit = 1 real-world metre (matches the building's existing meter-based
