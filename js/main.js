@@ -1,6 +1,6 @@
 /**
  * 3D Wind Rose — main.js
- * Version 1.0.0 — 2026-09-15
+ * Version 1.0.0 — 2026-09-16
  *
  * App wiring: scene setup, UI panels, and the rebuild loop that ties
  * slider input + loaded wind data to the building/wind-rose meshes.

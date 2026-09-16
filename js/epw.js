@@ -1,6 +1,6 @@
 /**
  * 3D Wind Rose — epw.js
- * Version 1.0.0 — 2026-09-15
+ * Version 1.0.0 — 2026-09-16
  *
  * EPW (EnergyPlus Weather) file parsing.
  *

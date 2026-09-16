@@ -1,6 +1,6 @@
 /**
  * 3D Wind Rose — sample-data.js
- * Version 1.0.0 — 2026-09-15
+ * Version 1.0.0 — 2026-09-16
  *
  * Embedded UK wind climate data, so the "suggested locations" panel loads
  * a wind rose instantly with no download step.

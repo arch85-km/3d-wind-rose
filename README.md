@@ -23,7 +23,7 @@ history, made directly in this repo.
 
 ## Version
 
-**1.0.0** — 2026-09-15
+**1.0.0** — 2026-09-16
 
 ## Setup
 
