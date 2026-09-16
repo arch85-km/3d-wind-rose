@@ -185,7 +185,11 @@
       });
       renderer.autoClear = false;
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      // PCFShadowMap (a single-tap filter), not PCFSoftShadowMap (multi-tap
+      // blur) — the soft variant's extra sampling is a real per-frame GPU
+      // cost on mobile devices, disproportionate to how visible the
+      // difference actually is at this scene's scale.
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.08;
@@ -235,7 +239,23 @@
         gl.disable(gl.BLEND);
         gl.colorMask(true, true, true, true);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        // Explicitly re-enable depth testing with the standard "nearer or
+        // equal wins" function — a style whose own layers include 3D
+        // extruded buildings (e.g. MapTiler's streets-v2, unlike a flat
+        // satellite raster with no depth complexity at all) is more likely
+        // to leave the depth test itself disabled, or left at a stale
+        // function, after its own 3D pass. Clearing the depth buffer alone
+        // (previously the only defence here) does nothing if the test that
+        // reads it is off — our draw would then composite fine per-pixel
+        // but any of MapLibre's own subsequent draws this same frame could
+        // still write over it. Also clear the stencil buffer alongside
+        // depth, matching the disable(STENCIL_TEST) above, in case a
+        // leftover non-zero stencil ref interacts with a Three.js material
+        // that itself enables stencil writes (none currently do, but this
+        // keeps the reset symmetric and cheap either way).
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         renderer.resetState();
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
@@ -375,7 +395,10 @@
   const sun = new THREE.DirectionalLight(0xfff2da, 1.7);
   sun.position.set(40, 55, 20);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  // 1024, not 2048 — a quarter the memory/rasterisation cost per frame,
+  // still ample resolution for this scene's scale (the shadow camera
+  // frustum below is ±80 units), and a meaningful saving on mobile GPUs.
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.left = -80;
   sun.shadow.camera.right = 80;
   sun.shadow.camera.top = 80;
