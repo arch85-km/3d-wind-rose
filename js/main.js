@@ -187,6 +187,25 @@
   map.on('styledata', collapseAttribution);
   map.on('sourcedata', collapseAttribution);
 
+  // On at least one real device, the canvas keeps holding correct pixels
+  // (confirmed: the screenshot feature's direct GPU readback showed the
+  // wind rose even while the live view didn't) but the browser's own
+  // compositor stops picking up new frames from it shortly after it
+  // renders once — a known mobile bug, worse inside an iframe (how this
+  // app is normally embedded). will-change on the canvas (see
+  // css/style.css) asks for a dedicated compositing layer, but doesn't by
+  // itself make the browser notice new WebGL content landed in an
+  // already-promoted layer if that's the actual gap. A cheap, low-
+  // frequency nudge closes it: forcing a real repaint periodically gives
+  // the browser a fresh reason to recomposite, without reintroducing the
+  // unconditional 60fps self-repaint loop already removed elsewhere in
+  // this file for the sluggishness it caused. Once a second is far below
+  // that cost and, unlike the on-screen debug panel that was masking this
+  // bug for one round of testing by coincidentally doing the same thing
+  // via its own DOM updates, this is a deliberate fix instead of a side
+  // effect.
+  setInterval(() => map.triggerRepaint(), 1000);
+
   // Places the whole three.js scene at state.siteLngLat, scaled so 1 scene
   // unit = 1 real-world metre (matches the building's existing meter-based
   // dimensions). Recomputed every frame from state.siteLngLat directly, so
