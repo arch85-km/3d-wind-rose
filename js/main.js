@@ -57,7 +57,7 @@
     windRoseScale: 1, // user-controlled multiplier (Wind Rose Size slider) — independent of the building's own footprint
     siteLngLat: { lat: londonDefault.lat, lng: londonDefault.lon }, // real-world site position on the map
     windDataLngLat: { lat: londonDefault.lat, lng: londonDefault.lon }, // where the *loaded wind data* actually came from — compared against siteLngLat to warn when they diverge
-    mapStyle: 'satellite', // see MAP_STYLES below
+    mapStyle: 'streets', // see MAP_STYLES below
   };
 
   // ---------- Scene setup ----------
