@@ -7,6 +7,8 @@ date-released: 2026-09-16
 authors:
   - family-names: "Al-Obaidi"
     given-names: "Karam M."
+    affiliation: "Sheffield Hallam University"
+    orcid: "https://orcid.org/0000-0002-4379-6964"
 url: "https://karam.me.uk/applications/3d-wind-rose/"
 repository-code: "https://github.com/arch85-km/3d-wind-rose"
 license: MIT
