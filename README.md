@@ -11,6 +11,8 @@ built-in UK city presets (London, Sheffield, Edinburgh).
 No build step, no bundler — `index.html` loads Three.js and MapLibre GL JS
 from a CDN, plus this repo's own `css/style.css` and `js/*.js` files.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22802663.svg)](https://doi.org/10.5281/zenodo.22802663)
+
 ## A note on this repo's history
 
 The first commit in this repo introduces the app already complete,
