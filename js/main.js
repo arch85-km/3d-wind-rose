@@ -333,7 +333,17 @@
       // keeps the reset symmetric and cheap either way).
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
-      gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+      // Also clear the color buffer — this canvas is our own now (alpha:
+      // true, nothing else paints into it first), unlike when this reset
+      // was written for the old shared-canvas design, where MapLibre
+      // repainted the whole canvas with fresh map tiles every frame before
+      // this ran, effectively clearing color for us. Without it here,
+      // stale pixels from the previous frame persist wherever this frame's
+      // sky dome/scene don't fully redraw over them — most visible as a
+      // ghosting "dome" trail at the sky sphere's silhouette while tilting
+      // the camera. Clearing to transparent lets MapLibre's map correctly
+      // show through everywhere our own scene doesn't draw.
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
       renderer.resetState();
       renderer.render(scene, camera);
       labelRenderer.render(scene, camera);
