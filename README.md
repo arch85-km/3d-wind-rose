@@ -52,4 +52,8 @@ placeholder in anything you push back to this repo.
 - **Accompanying material** — documentation pages, screenshots, and
   exercises — is licensed under [CC BY 4.0](DOCS-LICENCE.md).
 
+The terms above cover this project's own work only — Three.js and
+MapLibre GL JS, loaded from a CDN at runtime, carry their own licences;
+see the "Third-Party Components" section in [`LICENSE`](LICENSE).
+
 Copyright © Karam Al-Obaidi.
