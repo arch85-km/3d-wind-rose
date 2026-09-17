@@ -27,6 +27,18 @@
   const FLAG_NUDGE = urlFlags.get('nudge') === '1';
   const FLAG_REPAINT = urlFlags.get('repaint') === '1';
   const FLAG_COMPOSITE = urlFlags.get('composite') === '1';
+  // preserveDrawingBuffer:true (the current, unconditional default below)
+  // puts the canvas on a different, less-common browser compositor path
+  // than the default false — normally chosen deliberately here so the
+  // screenshot feature's canvas.toDataURL() can reliably read back the
+  // last-rendered frame. That's also a documented category of mobile
+  // Chromium bug: the canvas painting correctly but the compositor not
+  // presenting updates from that path, matching this app's own symptom
+  // (a direct GPU readback via the screenshot feature shows correct
+  // pixels; the live view doesn't) unusually closely. ?preserve=0 tests
+  // with it off; the screenshot feature will not work correctly with
+  // this flag set, that's expected and fine for this one test.
+  const FLAG_PRESERVE = urlFlags.get('preserve') !== '0';
 
   const debugLines = [];
   const debugHud = document.createElement('div');
@@ -72,7 +84,7 @@
     debugText.textContent = debugLines.join('\n');
     console.log('[wind-rose debug]', t + 'ms', msg);
   }
-  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE}`);
+  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE} preserve=${FLAG_PRESERVE}`);
 
   // ---------- Map basemap config ----------
   // A free MapTiler API key is required for the live map basemap (both
@@ -200,8 +212,10 @@
     // capture the last-rendered frame — must be set here, at context
     // creation, since the three.js renderer in buildingLayer.onAdd() only
     // wraps this same already-created context and can't change it after
-    // the fact.
-    preserveDrawingBuffer: true,
+    // the fact. Gated behind FLAG_PRESERVE (default on, matching prior
+    // behavior) to test it as a candidate cause of the mobile bug — see
+    // the flag's own comment above.
+    preserveDrawingBuffer: FLAG_PRESERVE,
     attributionControl: false,
   });
   // Cap the pixel ratio instead of running at the device's raw
