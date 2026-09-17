@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "3D Wind Rose: A browser-based climate data and building context viewer"
-version: 1.0.0
-date-released: 2026-09-16
+version: 1.0.1
+date-released: 2026-09-17
 authors:
   - family-names: "Al-Obaidi"
     given-names: "Karam M."

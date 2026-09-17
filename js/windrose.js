@@ -1,6 +1,6 @@
 /**
  * 3D Wind Rose — windrose.js
- * Version 1.0.0 — 2026-09-16
+ * Version 1.0.1 — 2026-09-17
  *
  * 3D wind rose: a stack of ring-sector ("wedge") meshes radiating out
  * from the building, presented on an instrument-style circular plate with

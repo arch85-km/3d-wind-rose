@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   3D Wind Rose
-  Version 1.0.0 — 2026-09-16
+  Version 1.0.1 — 2026-09-17
 -->
 <html lang="en">
 <head>
@@ -13,9 +13,9 @@
 </head>
 <body>
 <div id="app">
-  <!-- Live map basemap (satellite/streets) that the building + wind rose
-       are rendered on top of, as a MapLibre "custom layer" sharing the
-       map's own WebGL context — see js/main.js. -->
+  <!-- Live map basemap (satellite/streets), with the building + wind rose
+       rendered on top of it on their own independent canvas and WebGL
+       context (#three-overlay, css/style.css) — see js/main.js. -->
   <div id="map-container"></div>
 
   <!-- Title -->
@@ -35,7 +35,7 @@
     <button id="btn-screenshot" class="icon-btn" type="button" title="Take a Screenshot" aria-label="Take a Screenshot">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A2 2 0 0 1 9.83 3.5h4.34a2 2 0 0 1 1.73 1l.9 1.5H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
     </button>
-    <span class="version-tag" title="Released 2026-09-16">v1.0.0</span>
+    <span class="version-tag" title="Released 2026-09-17">v1.0.1</span>
   </div>
 
   <!-- Unified sidebar: one bounded, internally-scrolling panel with
