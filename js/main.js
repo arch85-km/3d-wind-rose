@@ -39,6 +39,16 @@
   // with it off; the screenshot feature will not work correctly with
   // this flag set, that's expected and fine for this one test.
   const FLAG_PRESERVE = urlFlags.get('preserve') !== '0';
+  // Every fix tried so far has assumed the shared canvas/context itself is
+  // fine and tried to nudge the browser into recompositing it. This tests
+  // a different, more specific variable: is being invoked from *inside*
+  // MapLibre's own custom-layer render call stack itself part of the
+  // problem? With this on, the actual three.js draw call moves out of
+  // buildingLayer.render() (still called by MapLibre every frame, but now
+  // only to keep the camera matrix current) and into a genuinely
+  // independent requestAnimationFrame loop — see drawFrame() and its
+  // caller below.
+  const FLAG_INDEPLOOP = urlFlags.get('indeploop') === '1';
 
   const debugLines = [];
   const debugHud = document.createElement('div');
@@ -84,7 +94,7 @@
     debugText.textContent = debugLines.join('\n');
     console.log('[wind-rose debug]', t + 'ms', msg);
   }
-  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE} preserve=${FLAG_PRESERVE}`);
+  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE} preserve=${FLAG_PRESERVE} indeploop=${FLAG_INDEPLOOP}`);
 
   // ---------- Map basemap config ----------
   // A free MapTiler API key is required for the live map basemap (both
@@ -297,6 +307,84 @@
   // dimensions). Recomputed every frame from state.siteLngLat directly, so
   // a location change (pin-drop, city preset, EPW upload) takes effect
   // immediately with no extra plumbing.
+  let sharedGL = null; // set in onAdd; needed by drawFrame() when called
+  // from the independent rAF loop below (FLAG_INDEPLOOP), which has no
+  // `gl` parameter of its own the way buildingLayer.render(gl, matrix) does.
+
+  // The actual GL-state-reset-and-draw work, pulled out of
+  // buildingLayer.render() so it can also be called from an independent
+  // requestAnimationFrame loop (FLAG_INDEPLOOP) instead of only ever being
+  // invoked from inside MapLibre's own custom-layer callback — testing
+  // whether being nested inside another library's render call stack is
+  // itself part of a mobile compositor bug this app has hit (see the
+  // flag's own comment above). Needs `camera.projectionMatrix` already
+  // set by the caller.
+  function drawFrame() {
+    if (!renderer || !sharedGL) return;
+    const gl = sharedGL;
+    try {
+      // Once real basemap tiles are actually drawing (unlike this
+      // sandbox's network-blocked testing, where the canvas stayed blank),
+      // MapLibre's own tile rendering leaves depth-buffer values behind
+      // that our building/wind rose can fail the depth test against and
+      // get invisibly culled — even though CSS2D labels (plain HTML,
+      // positioned by the same matrix but never depth-tested) still show.
+      // Clearing the depth buffer right before our own draw guarantees the
+      // 3D content always renders regardless of what the basemap left.
+      // Also defensively reset scissor/stencil/viewport — MapLibre's own
+      // raster-tile drawing uses the scissor test heavily for tile
+      // clipping, and a leftover active scissor rect (or stencil test)
+      // could silently clip our entire draw to nothing without any error.
+      gl.disable(gl.SCISSOR_TEST);
+      gl.disable(gl.STENCIL_TEST);
+      // Also force blend off and color writes fully on — MapLibre's own
+      // vector-tile rendering (labels, translucent fills, antialiased
+      // lines) leaves blending enabled with its own blend func, and if
+      // three.js's cached "blend is off" assumption (from resetState())
+      // doesn't result in an actual gl.disable(BLEND) call before our
+      // first opaque draw, that stale blend func could make our draws
+      // blend into invisibility against the already-drawn map tiles.
+      gl.disable(gl.BLEND);
+      gl.colorMask(true, true, true, true);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      // Explicitly re-enable depth testing with the standard "nearer or
+      // equal wins" function — a style whose own layers include 3D
+      // extruded buildings (e.g. MapTiler's streets-v2, unlike a flat
+      // satellite raster with no depth complexity at all) is more likely
+      // to leave the depth test itself disabled, or left at a stale
+      // function, after its own 3D pass. Clearing the depth buffer alone
+      // (previously the only defence here) does nothing if the test that
+      // reads it is off — our draw would then composite fine per-pixel
+      // but any of MapLibre's own subsequent draws this same frame could
+      // still write over it. Also clear the stencil buffer alongside
+      // depth, matching the disable(STENCIL_TEST) above, in case a
+      // leftover non-zero stencil ref interacts with a Three.js material
+      // that itself enables stencil writes (none currently do, but this
+      // keeps the reset symmetric and cheap either way).
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+      renderer.resetState();
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+      window.__renderOkCount = (window.__renderOkCount || 0) + 1;
+      if (window.__renderOkCount === 1) {
+        const c = gl.canvas;
+        debugLog(`first render ok: drawBuf=${gl.drawingBufferWidth}x${gl.drawingBufferHeight} canvas=${c.width}x${c.height} client=${c.clientWidth}x${c.clientHeight} dpr=${window.devicePixelRatio} sceneChildren=${scene.children.length} windroseGroup=${state.windroseGroup ? (state.windroseGroup.visible + '/' + state.windroseGroup.children.length + 'ch') : 'null'} glErr=${gl.getError()}`);
+      }
+    } catch (err) {
+      // MapLibre swallows exceptions thrown from inside a custom layer's
+      // render() internally, so without this the building/wind rose would
+      // just silently stop appearing with zero visible indication why.
+      debugLog('drawFrame() threw: ' + (err && (err.message || err)));
+      if (!window.__buildingLayerErrorShown) {
+        window.__buildingLayerErrorShown = true;
+        console.error('buildingLayer render error:', err);
+        showToast('Render error — see browser console: ' + (err && err.message || err), 'error');
+      }
+    }
+  }
+
   const buildingLayer = {
     id: 'building-3d-layer',
     type: 'custom',
@@ -304,6 +392,7 @@
     onAdd(mapInstance, gl) {
       window.__onAddCount = (window.__onAddCount || 0) + 1;
       debugLog(`onAdd #${window.__onAddCount}, contextLost=${gl.isContextLost()}`);
+      sharedGL = gl;
       renderer = new THREE.WebGLRenderer({
         canvas: mapInstance.getCanvas(),
         context: gl,
@@ -341,59 +430,13 @@
           .multiply(rotationX);
 
         camera.projectionMatrix = m.multiply(l);
-        // Once real basemap tiles are actually drawing (unlike this
-        // sandbox's network-blocked testing, where the canvas stayed blank),
-        // MapLibre's own tile rendering leaves depth-buffer values behind
-        // that our building/wind rose can fail the depth test against and
-        // get invisibly culled — even though CSS2D labels (plain HTML,
-        // positioned by the same matrix but never depth-tested) still show.
-        // Clearing the depth buffer right before our own draw guarantees the
-        // 3D content always renders regardless of what the basemap left.
-        // Also defensively reset scissor/stencil/viewport — MapLibre's own
-        // raster-tile drawing uses the scissor test heavily for tile
-        // clipping, and a leftover active scissor rect (or stencil test)
-        // could silently clip our entire draw to nothing without any error.
-        gl.disable(gl.SCISSOR_TEST);
-        gl.disable(gl.STENCIL_TEST);
-        // Also force blend off and color writes fully on — MapLibre's own
-        // vector-tile rendering (labels, translucent fills, antialiased
-        // lines) leaves blending enabled with its own blend func, and if
-        // three.js's cached "blend is off" assumption (from resetState())
-        // doesn't result in an actual gl.disable(BLEND) call before our
-        // first opaque draw, that stale blend func could make our draws
-        // blend into invisibility against the already-drawn map tiles.
-        gl.disable(gl.BLEND);
-        gl.colorMask(true, true, true, true);
-        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-        // Explicitly re-enable depth testing with the standard "nearer or
-        // equal wins" function — a style whose own layers include 3D
-        // extruded buildings (e.g. MapTiler's streets-v2, unlike a flat
-        // satellite raster with no depth complexity at all) is more likely
-        // to leave the depth test itself disabled, or left at a stale
-        // function, after its own 3D pass. Clearing the depth buffer alone
-        // (previously the only defence here) does nothing if the test that
-        // reads it is off — our draw would then composite fine per-pixel
-        // but any of MapLibre's own subsequent draws this same frame could
-        // still write over it. Also clear the stencil buffer alongside
-        // depth, matching the disable(STENCIL_TEST) above, in case a
-        // leftover non-zero stencil ref interacts with a Three.js material
-        // that itself enables stencil writes (none currently do, but this
-        // keeps the reset symmetric and cheap either way).
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-        renderer.resetState();
-        renderer.render(scene, camera);
-        labelRenderer.render(scene, camera);
-        window.__renderOkCount = (window.__renderOkCount || 0) + 1;
-        if (window.__renderOkCount === 1) {
-          const c = gl.canvas;
-          debugLog(`first render ok: drawBuf=${gl.drawingBufferWidth}x${gl.drawingBufferHeight} canvas=${c.width}x${c.height} client=${c.clientWidth}x${c.clientHeight} dpr=${window.devicePixelRatio} sceneChildren=${scene.children.length} windroseGroup=${state.windroseGroup ? (state.windroseGroup.visible + '/' + state.windroseGroup.children.length + 'ch') : 'null'} glErr=${gl.getError()}`);
-        }
+        // When FLAG_INDEPLOOP is set, drawing happens entirely from the
+        // independent requestAnimationFrame loop started below instead —
+        // this callback's only job becomes keeping the camera matrix
+        // current, testing whether being invoked from inside MapLibre's
+        // own render call stack is itself part of the problem.
+        if (!FLAG_INDEPLOOP) drawFrame();
       } catch (err) {
-        // MapLibre swallows exceptions thrown from inside a custom layer's
-        // render() internally, so without this the building/wind rose would
-        // just silently stop appearing with zero visible indication why.
         debugLog('render() threw: ' + (err && (err.message || err)));
         if (!window.__buildingLayerErrorShown) {
           window.__buildingLayerErrorShown = true;
@@ -425,6 +468,14 @@
       console.error('Failed to add building layer:', err);
       showToast('Could not attach 3D layer — see console', 'error');
     }
+  }
+
+  if (FLAG_INDEPLOOP) {
+    debugLog('independent draw loop active (buildingLayer.render only updates the camera matrix)');
+    (function independentDrawLoop() {
+      drawFrame();
+      requestAnimationFrame(independentDrawLoop);
+    })();
   }
 
   // Mobile browsers (iOS Safari in particular) reclaim WebGL contexts under
