@@ -54,6 +54,6 @@ placeholder in anything you push back to this repo.
 
 The terms above cover this project's own work only — Three.js and
 MapLibre GL JS, loaded from a CDN at runtime, carry their own licences;
-see the "Third-Party Components" section in [`LICENSE`](LICENSE).
+see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 Copyright © Karam Al-Obaidi.
