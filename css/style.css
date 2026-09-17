@@ -69,15 +69,21 @@ html, body {
 
 #map-container canvas { display: block; }
 
-/* will-change forces this canvas onto its own GPU compositing layer — a
-   standard, well-established fix for a canvas whose compositor layer
-   doesn't get redisplayed after new content lands in it, which is one
-   candidate explanation for a mobile bug this app has (see js/main.js's
-   FLAG_COMPOSITE). Not confirmed to actually help on its own — applied
-   only via this class, toggled at runtime by a URL flag, rather than
-   unconditionally, so it can be tested in isolation instead of stacked
-   with other untested candidate fixes. */
-#map-container canvas.composite-hint { will-change: transform; }
+/* The wind rose/building's own canvas, stacked on top of MapLibre's own
+   (which is #map-container's other child canvas) with its own separate
+   WebGL context — see the "Scene setup" comment in js/main.js for why
+   they're no longer sharing one. pointer-events:none lets drag/pan/zoom/
+   rotate gestures pass through to MapLibre's canvas underneath. */
+#three-overlay {
+  position: absolute;
+  inset: 0;
+  /* Guarantees this stacks above MapLibre's own canvas regardless of DOM
+     append order (this canvas is created before the MapLibre map is, so
+     it would otherwise paint underneath — MapLibre's canvas has no
+     explicit z-index of its own, so any explicit value here wins). */
+  z-index: 2;
+  pointer-events: none;
+}
 
 /* MapLibre's own attribution control (top-right, kept out of the way of
    the gizmo/hint-panel/copyright, which all live in the bottom corners). */

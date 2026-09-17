@@ -8,48 +8,11 @@
 (function () {
   const { Building, WindRose, EPW, SampleData, Palettes } = window.App;
 
-  // ---------- TEMPORARY diagnostics (controlled test build) ----------
-  // Six independent, individually well-reasoned fixes for a mobile-only
-  // "renders once, then invisible" bug have all failed to change the
-  // outcome on the one real failing device available (a Galaxy S22
-  // Ultra) — including one, the compositing-layer hint, that looked
-  // confirmed for a round of testing before turning out to be a false
-  // positive: the previous debug panel's own periodic on-screen text
-  // update was itself a DOM mutation that happened to mask the bug,
-  // which is exactly the kind of confound this version is built to
-  // avoid. Each candidate fix now sits behind its own URL flag so they
-  // can be tested in isolation, including a true do-nothing baseline
-  // (no flags at all) that has never actually been tested up to now.
-  // The panel below only writes to the DOM in response to a real event
-  // or an actual change, never on a fixed timer regardless of outcome —
-  // so simply having it open cannot itself be a nudge.
-  const urlFlags = new URLSearchParams(location.search);
-  const FLAG_NUDGE = urlFlags.get('nudge') === '1';
-  const FLAG_REPAINT = urlFlags.get('repaint') === '1';
-  const FLAG_COMPOSITE = urlFlags.get('composite') === '1';
-  // preserveDrawingBuffer:true (the current, unconditional default below)
-  // puts the canvas on a different, less-common browser compositor path
-  // than the default false — normally chosen deliberately here so the
-  // screenshot feature's canvas.toDataURL() can reliably read back the
-  // last-rendered frame. That's also a documented category of mobile
-  // Chromium bug: the canvas painting correctly but the compositor not
-  // presenting updates from that path, matching this app's own symptom
-  // (a direct GPU readback via the screenshot feature shows correct
-  // pixels; the live view doesn't) unusually closely. ?preserve=0 tests
-  // with it off; the screenshot feature will not work correctly with
-  // this flag set, that's expected and fine for this one test.
-  const FLAG_PRESERVE = urlFlags.get('preserve') !== '0';
-  // Every fix tried so far has assumed the shared canvas/context itself is
-  // fine and tried to nudge the browser into recompositing it. This tests
-  // a different, more specific variable: is being invoked from *inside*
-  // MapLibre's own custom-layer render call stack itself part of the
-  // problem? With this on, the actual three.js draw call moves out of
-  // buildingLayer.render() (still called by MapLibre every frame, but now
-  // only to keep the camera matrix current) and into a genuinely
-  // independent requestAnimationFrame loop — see drawFrame() and its
-  // caller below.
-  const FLAG_INDEPLOOP = urlFlags.get('indeploop') === '1';
-
+  // ---------- TEMPORARY diagnostics ----------
+  // Kept from the investigation that led to the separate-canvas
+  // architecture above (see the "Scene setup" comment) — useful for
+  // confirming the fix actually holds on the real device it was failing
+  // on, and as a fallback if it doesn't. Safe to delete once confirmed.
   const debugLines = [];
   const debugHud = document.createElement('div');
   debugHud.id = 'debug-hud';
@@ -94,7 +57,7 @@
     debugText.textContent = debugLines.join('\n');
     console.log('[wind-rose debug]', t + 'ms', msg);
   }
-  debugLog(`flags: nudge=${FLAG_NUDGE} repaint=${FLAG_REPAINT} composite=${FLAG_COMPOSITE} preserve=${FLAG_PRESERVE} indeploop=${FLAG_INDEPLOOP}`);
+  debugLog('separate-canvas build: wind rose renders on its own WebGL context, independent of MapLibre\'s');
 
   // ---------- Map basemap config ----------
   // A free MapTiler API key is required for the live map basemap (both
@@ -149,11 +112,22 @@
   };
 
   // ---------- Scene setup ----------
-  // The building + wind rose are a MapLibre "custom layer" sharing the
-  // map's own WebGL context, positioned in real-world Mercator space each
-  // frame (see buildingLayer.render() below) — this is what lets the scene
-  // sit correctly-scaled and correctly-placed on real map tiles instead of
-  // a flat procedural ground plane.
+  // The building + wind rose render on their own independent canvas,
+  // stacked on top of MapLibre's own (see #three-overlay in
+  // css/style.css) with its own separate WebGL context — not, as an
+  // earlier version of this file did, sharing MapLibre's canvas/context
+  // via a MapLibre "custom layer" render callback. That shared-context
+  // approach turned out to have a persistent, unresolved Chromium/
+  // Blink-on-Android bug: the WebGL draws completed with zero errors
+  // every frame (confirmed via on-device diagnostics — correct scene
+  // state, active rendering, no context loss) but the browser's own
+  // compositor never displayed the updated frames, while Firefox for
+  // Android (a different rendering engine) never had the problem. Eight
+  // independent fixes aimed at that shared canvas all failed to change
+  // it. A MapLibre custom layer is kept (see buildingLayer below), but
+  // now purely as the official, documented way to receive the camera's
+  // projection matrix each frame — it no longer touches a WebGL context
+  // or draws anything itself.
   const mapContainer = document.getElementById('map-container');
   const scene = new THREE.Scene();
 
@@ -167,6 +141,10 @@
   labelRenderer.domElement.style.top = '0';
   labelRenderer.domElement.style.left = '0';
   labelRenderer.domElement.style.pointerEvents = 'none';
+  // Explicit z-index so these labels stay above #three-overlay (z-index:2,
+  // css/style.css) regardless of DOM order — they're meant to read on top
+  // of the 3D scene, same as before this file had two stacked canvases.
+  labelRenderer.domElement.style.zIndex = '3';
   mapContainer.appendChild(labelRenderer.domElement);
 
   function sizeLabelRenderer() {
@@ -174,7 +152,32 @@
   }
   sizeLabelRenderer();
 
-  let renderer = null; // created once MapLibre hands us its GL context, in buildingLayer.onAdd
+  // alpha:true is essential — this canvas sits transparently on top of
+  // MapLibre's own, which must show through everywhere the wind rose/
+  // building doesn't draw. Its own separate context (not shared with
+  // MapLibre) is the actual fix for the Chromium/Android bug described
+  // above.
+  const threeCanvas = document.createElement('canvas');
+  threeCanvas.id = 'three-overlay';
+  mapContainer.appendChild(threeCanvas);
+  let renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+  let sharedGL = renderer.getContext();
+  renderer.autoClear = false;
+  renderer.shadowMap.enabled = true;
+  // PCFShadowMap (a single-tap filter), not PCFSoftShadowMap (multi-tap
+  // blur) — the soft variant's extra sampling is a real per-frame GPU
+  // cost on mobile devices, disproportionate to how visible the
+  // difference actually is at this scene's scale.
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.08;
+
+  function sizeThreeCanvas() {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(mapContainer.clientWidth, mapContainer.clientHeight);
+  }
+  sizeThreeCanvas();
 
   // MapTiler's hosted style.json (their documented MapLibre integration
   // path) — handles sources/layers/glyphs/sprites internally, so no
@@ -218,14 +221,11 @@
     pitch: 0, // top-down by default; right-drag to tilt into a 3D view
     bearing: 0,
     antialias: true,
-    // Needed for the screenshot button's canvas.toDataURL() to reliably
-    // capture the last-rendered frame — must be set here, at context
-    // creation, since the three.js renderer in buildingLayer.onAdd() only
-    // wraps this same already-created context and can't change it after
-    // the fact. Gated behind FLAG_PRESERVE (default on, matching prior
-    // behavior) to test it as a candidate cause of the mobile bug — see
-    // the flag's own comment above.
-    preserveDrawingBuffer: FLAG_PRESERVE,
+    // Needed for the screenshot button to reliably read back the
+    // last-rendered frame via canvas.drawImage() — ruled out as the
+    // cause of the mobile rendering bug (tested off, no change), so kept
+    // on for the safety margin it gives the screenshot feature.
+    preserveDrawingBuffer: true,
     attributionControl: false,
   });
   // Cap the pixel ratio instead of running at the device's raw
@@ -247,7 +247,6 @@
   // the fill-rate cost), using the same map.setPixelRatio() API this file
   // already relies on elsewhere for the screenshot feature.
   map.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  if (FLAG_COMPOSITE) map.getCanvas().classList.add('composite-hint');
   const attributionControl = new maplibregl.AttributionControl({ compact: true });
   map.addControl(attributionControl, 'top-right');
   // A compact AttributionControl starts in its expanded "compact-show"
@@ -278,49 +277,20 @@
   map.on('styledata', collapseAttribution);
   map.on('sourcedata', collapseAttribution);
 
-  // On at least one real device, the canvas keeps holding correct pixels
-  // (confirmed: the screenshot feature's direct GPU readback showed the
-  // wind rose even while the live view didn't) but the browser's own
-  // compositor stops picking up new frames from it shortly after it
-  // renders once — a known mobile bug, worse inside an iframe (how this
-  // app is normally embedded). Neither candidate fix tried so far
-  // (map.triggerRepaint() alone; an off-screen DOM-mutation nudge
-  // replicating what an earlier debug panel did by accident) has been
-  // confirmed to actually change the outcome — both are gated behind
-  // their own URL flag here (?repaint=1, ?nudge=1) so they can be tested
-  // in isolation, including a true do-nothing baseline with neither flag
-  // set, which has never actually been tested up to now.
-  if (FLAG_NUDGE || FLAG_REPAINT) {
-    const compositorNudge = FLAG_NUDGE ? document.createElement('div') : null;
-    if (compositorNudge) {
-      compositorNudge.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0.01;pointer-events:none;';
-      document.body.appendChild(compositorNudge);
-    }
-    setInterval(() => {
-      if (FLAG_REPAINT) map.triggerRepaint();
-      if (compositorNudge) compositorNudge.textContent = String(performance.now());
-    }, 500);
-  }
-
   // Places the whole three.js scene at state.siteLngLat, scaled so 1 scene
   // unit = 1 real-world metre (matches the building's existing meter-based
   // dimensions). Recomputed every frame from state.siteLngLat directly, so
   // a location change (pin-drop, city preset, EPW upload) takes effect
   // immediately with no extra plumbing.
-  let sharedGL = null; // set in onAdd; needed by drawFrame() when called
-  // from the independent rAF loop below (FLAG_INDEPLOOP), which has no
-  // `gl` parameter of its own the way buildingLayer.render(gl, matrix) does.
 
-  // The actual GL-state-reset-and-draw work, pulled out of
-  // buildingLayer.render() so it can also be called from an independent
-  // requestAnimationFrame loop (FLAG_INDEPLOOP) instead of only ever being
-  // invoked from inside MapLibre's own custom-layer callback — testing
-  // whether being nested inside another library's render call stack is
-  // itself part of a mobile compositor bug this app has hit (see the
-  // flag's own comment above). Needs `camera.projectionMatrix` already
-  // set by the caller.
+  // The GL-state-reset-and-draw work, called every frame from the
+  // independent requestAnimationFrame loop below (never from inside
+  // MapLibre's own render call stack — see the "Scene setup" comment for
+  // why). Needs `camera.projectionMatrix` already current, which
+  // buildingLayer.render() below keeps updated on every one of MapLibre's
+  // own repaints.
   function drawFrame() {
-    if (!renderer || !sharedGL) return;
+    if (!renderer) return;
     const gl = sharedGL;
     try {
       // Once real basemap tiles are actually drawing (unlike this
@@ -385,32 +355,15 @@
     }
   }
 
+  // A MapLibre custom layer, kept purely as the official, documented way
+  // to receive the camera's projection matrix each frame — it owns no
+  // WebGL resources of its own and never draws; see the "Scene setup"
+  // comment above for why.
   const buildingLayer = {
     id: 'building-3d-layer',
     type: 'custom',
     renderingMode: '3d',
-    onAdd(mapInstance, gl) {
-      window.__onAddCount = (window.__onAddCount || 0) + 1;
-      debugLog(`onAdd #${window.__onAddCount}, contextLost=${gl.isContextLost()}`);
-      sharedGL = gl;
-      renderer = new THREE.WebGLRenderer({
-        canvas: mapInstance.getCanvas(),
-        context: gl,
-        antialias: true,
-      });
-      renderer.autoClear = false;
-      renderer.shadowMap.enabled = true;
-      // PCFShadowMap (a single-tap filter), not PCFSoftShadowMap (multi-tap
-      // blur) — the soft variant's extra sampling is a real per-frame GPU
-      // cost on mobile devices, disproportionate to how visible the
-      // difference actually is at this scene's scale.
-      renderer.shadowMap.type = THREE.PCFShadowMap;
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.08;
-    },
     render(gl, matrix) {
-      if (!renderer) return;
       try {
         const origin = maplibregl.MercatorCoordinate.fromLngLat(
           [state.siteLngLat.lng, state.siteLngLat.lat],
@@ -430,14 +383,8 @@
           .multiply(rotationX);
 
         camera.projectionMatrix = m.multiply(l);
-        // When FLAG_INDEPLOOP is set, drawing happens entirely from the
-        // independent requestAnimationFrame loop started below instead —
-        // this callback's only job becomes keeping the camera matrix
-        // current, testing whether being invoked from inside MapLibre's
-        // own render call stack is itself part of the problem.
-        if (!FLAG_INDEPLOOP) drawFrame();
       } catch (err) {
-        debugLog('render() threw: ' + (err && (err.message || err)));
+        debugLog('buildingLayer.render() threw: ' + (err && (err.message || err)));
         if (!window.__buildingLayerErrorShown) {
           window.__buildingLayerErrorShown = true;
           console.error('buildingLayer render error:', err);
@@ -470,41 +417,39 @@
     }
   }
 
-  if (FLAG_INDEPLOOP) {
-    debugLog('independent draw loop active (buildingLayer.render only updates the camera matrix)');
-    (function independentDrawLoop() {
-      drawFrame();
-      requestAnimationFrame(independentDrawLoop);
-    })();
-  }
+  // Drives every actual draw call — genuinely independent of MapLibre's
+  // own render cycle, unlike the old shared-canvas design (see "Scene
+  // setup" above). Starts immediately: our canvas/renderer are ready at
+  // page load, with no need to wait on MapLibre's own tile loading.
+  (function independentDrawLoop() {
+    drawFrame();
+    requestAnimationFrame(independentDrawLoop);
+  })();
 
-  // Mobile browsers (iOS Safari in particular) reclaim WebGL contexts under
-  // memory pressure far more aggressively than desktop — and this app's
-  // heaviest memory user by far is a basemap style with real 3D building
-  // geometry/textures (e.g. streets, unlike a flat satellite raster), so a
-  // context loss here is disproportionately more likely on Streets than on
-  // Satellite. This is very plausibly what "renders once, then vanishes"
-  // on mobile actually is: not a one-off depth/blend state issue (already
-  // handled above), but the GL context itself dying mid-session. Per spec,
-  // calling preventDefault() here is required for the browser to attempt
-  // restoration at all — without it, a lost context is permanent. MapLibre
-  // recovers its own style/layers on 'webglcontextrestored', but a custom
-  // layer's `renderer` (and everything three.js cached against the dead
-  // context) is ours to rebuild: null it out so render() no-ops safely in
-  // the meantime, then remove+re-add the layer so onAdd() runs again
-  // against the restored context.
-  map.getCanvas().addEventListener('webglcontextlost', (e) => {
+  // Mobile browsers (iOS Safari in particular) reclaim WebGL contexts
+  // under memory pressure — this app's own canvas/context (no longer
+  // shared with MapLibre) can still lose it under the same pressure.
+  // Per spec, calling preventDefault() here is required for the browser
+  // to attempt restoration at all — without it, a lost context is
+  // permanent. Recovery just recreates the renderer against the restored
+  // context; unlike the old shared-canvas design, no MapLibre layer needs
+  // removing/re-adding for this, since buildingLayer owns no GL resources.
+  threeCanvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
     debugLog('webglcontextlost');
     renderer = null;
   }, false);
-  map.getCanvas().addEventListener('webglcontextrestored', () => {
+  threeCanvas.addEventListener('webglcontextrestored', () => {
     debugLog('webglcontextrestored');
-    try {
-      if (map.getLayer(buildingLayer.id)) map.removeLayer(buildingLayer.id);
-    } catch (err) { /* already gone */ }
-    ensureBuildingLayer();
-    map.triggerRepaint();
+    renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    sharedGL = renderer.getContext();
+    renderer.autoClear = false;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    sizeThreeCanvas();
   }, false);
 
   let mapLoaded = false;
@@ -1481,19 +1426,10 @@
   // resizes, fullscreen transitions, and the host page resizing the
   // iframe alike.
   //
-  // Critically, map.resize() alone is NOT enough: our own THREE.js
-  // `renderer` (created once in buildingLayer.onAdd, wrapping MapLibre's
-  // canvas/gl context) caches its own internal width/height at
-  // construction time. THREE.WebGLRenderer.render() applies that CACHED
-  // size as its own internal viewport early in its execution, which
-  // overrides the fresh `gl.viewport(0,0,gl.drawingBufferWidth,...)` call
-  // buildingLayer.render() makes right before invoking it — so after a
-  // real size change, our building/wind-rose renders at the OLD cached
-  // size/position (small, mispositioned) even though MapLibre's own
-  // transform, padding and the CSS2D labels (driven by the same shared
-  // camera, but not by `renderer`'s internal cache) are all already
-  // correctly updated — reproduced and confirmed via direct pixel
-  // measurement. renderer.setSize() refreshes that cache to match.
+  // Critically, map.resize() alone is NOT enough: our own canvas/renderer
+  // are entirely independent of MapLibre's now, so resizing MapLibre's
+  // canvas has no effect on ours — sizeThreeCanvas() has to be called
+  // explicitly to keep it matching the container.
   let resyncScheduled = false;
   function resyncMapSize() {
     if (resyncScheduled) return;
@@ -1502,7 +1438,7 @@
       resyncScheduled = false;
       map.resize();
       sizeLabelRenderer();
-      if (renderer) renderer.setSize(mapContainer.clientWidth, mapContainer.clientHeight, false);
+      sizeThreeCanvas();
       syncMapPadding(); // re-applies padding and re-validates the zoom fit
     });
   }
@@ -1928,9 +1864,11 @@
     });
   }
 
-  // Renders `fn` (expected to synchronously read pixels back off the
-  // shared canvas) at a temporarily higher resolution, then restores the
-  // live view exactly as it was — including on a thrown/rejected `fn`.
+  // Renders `fn` (expected to synchronously read pixels back off the two
+  // canvases) at a temporarily higher resolution, then restores the live
+  // view exactly as it was — including on a thrown/rejected `fn`. Bumps
+  // MapLibre's own pixel ratio and our independent renderer's in step —
+  // they're no longer the same canvas, so both need telling separately.
   async function withHiResCanvas(fn) {
     const livePixelRatio = map.getPixelRatio();
     const longEdgeAtLiveRes = Math.max(mapContainer.clientWidth, mapContainer.clientHeight) * livePixelRatio;
@@ -1942,39 +1880,41 @@
     }
 
     map.setPixelRatio(targetPixelRatio);
-    // Same fix resyncMapSize() above relies on: renderer.render() applies
-    // its own CACHED size as the viewport, overriding the fresh
-    // gl.viewport() call buildingLayer.render() makes — so our building/
-    // wind-rose would render at the old (smaller) size unless this cache
-    // is refreshed to match the canvas's new actual pixel dimensions.
-    if (renderer) renderer.setSize(renderer.domElement.width, renderer.domElement.height, false);
+    renderer.setPixelRatio(targetPixelRatio);
+    renderer.setSize(mapContainer.clientWidth, mapContainer.clientHeight);
     await waitForRepaint();
+    // waitForRepaint() only guarantees MapLibre's own next paint — our
+    // renderer draws on its own independent loop (see "Scene setup"),
+    // so without an explicit draw here `fn()` could read a frame from
+    // before the resolution bump.
+    drawFrame();
     try {
       return fn();
     } finally {
       map.setPixelRatio(livePixelRatio);
-      if (renderer) renderer.setSize(renderer.domElement.width, renderer.domElement.height, false);
+      renderer.setPixelRatio(livePixelRatio);
+      renderer.setSize(mapContainer.clientWidth, mapContainer.clientHeight);
       map.triggerRepaint(); // restores the live view; no need to await this one
     }
   }
 
   function buildScreenshotCanvas() {
-    const srcCanvas = renderer.domElement; // = map.getCanvas(); already holds the composited map + building frame
-    const w = srcCanvas.width, h = srcCanvas.height;
-    const canvasRect = srcCanvas.getBoundingClientRect();
+    const w = threeCanvas.width, h = threeCanvas.height;
+    const canvasRect = threeCanvas.getBoundingClientRect();
     const scale = w / canvasRect.width;
 
     const out = document.createElement('canvas');
     out.width = w;
     out.height = h;
     const ctx = out.getContext('2d');
-    ctx.drawImage(srcCanvas, 0, 0, w, h);
+    ctx.drawImage(map.getCanvas(), 0, 0, w, h);
+    ctx.drawImage(threeCanvas, 0, 0, w, h);
     drawLabelsOnCanvas(ctx, canvasRect, scale);
     drawOverlayPanelsOnCanvas(ctx, canvasRect, scale);
     return out;
   }
 
-  // Cross-origin map tiles can taint the shared canvas for pixel readback
+  // Cross-origin map tiles can taint a canvas for pixel readback
   // (toDataURL) unless the tile provider sends permissive CORS headers.
   // Fails soft with a toast instead of an uncaught SecurityError.
   function safeDataURL(canvas, type, quality) {
