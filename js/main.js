@@ -8,57 +8,6 @@
 (function () {
   const { Building, WindRose, EPW, SampleData, Palettes } = window.App;
 
-  // ---------- TEMPORARY diagnostics ----------
-  // Kept from the investigation that led to the separate-canvas
-  // architecture above (see the "Scene setup" comment) — useful for
-  // confirming the fix actually holds on the real device it was failing
-  // on, and as a fallback if it doesn't. Safe to delete once confirmed.
-  const debugLines = [];
-  const debugHud = document.createElement('div');
-  debugHud.id = 'debug-hud';
-  debugHud.style.cssText = 'position:fixed;bottom:4px;right:4px;max-width:94vw;max-height:45vh;overflow:auto;background:rgba(0,0,0,0.85);color:#3f3;font:10px/1.35 monospace;padding:6px 8px;z-index:999999;';
-  const debugCopyBtn = document.createElement('button');
-  debugCopyBtn.type = 'button';
-  debugCopyBtn.textContent = 'Copy log';
-  debugCopyBtn.style.cssText = 'display:block;margin-bottom:4px;font:11px sans-serif;padding:5px 10px;background:#3f3;color:#000;border:none;border-radius:3px;';
-  const debugText = document.createElement('div');
-  debugText.style.cssText = 'white-space:pre-wrap;';
-  debugHud.appendChild(debugCopyBtn);
-  debugHud.appendChild(debugText);
-  document.body.appendChild(debugHud);
-  function fallbackCopy(text) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (err) { /* nothing else to try */ }
-    document.body.removeChild(ta);
-  }
-  debugCopyBtn.addEventListener('click', () => {
-    const text = debugLines.join('\n');
-    const done = () => {
-      debugCopyBtn.textContent = 'Copied!';
-      setTimeout(() => { debugCopyBtn.textContent = 'Copy log'; }, 1500);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
-    } else {
-      fallbackCopy(text);
-      done();
-    }
-  });
-  const debugStart = performance.now();
-  function debugLog(msg) {
-    const t = (performance.now() - debugStart).toFixed(0);
-    debugLines.push(`[${t}ms] ${msg}`);
-    if (debugLines.length > 50) debugLines.shift();
-    debugText.textContent = debugLines.join('\n');
-    console.log('[wind-rose debug]', t + 'ms', msg);
-  }
-  debugLog('separate-canvas build: wind rose renders on its own WebGL context, independent of MapLibre\'s');
-
   // ---------- Map basemap config ----------
   // A free MapTiler API key is required for the live map basemap (both
   // Satellite and Streets) to actually display tiles — sign up free at
@@ -347,16 +296,10 @@
       renderer.resetState();
       renderer.render(scene, camera);
       labelRenderer.render(scene, camera);
-      window.__renderOkCount = (window.__renderOkCount || 0) + 1;
-      if (window.__renderOkCount === 1) {
-        const c = gl.canvas;
-        debugLog(`first render ok: drawBuf=${gl.drawingBufferWidth}x${gl.drawingBufferHeight} canvas=${c.width}x${c.height} client=${c.clientWidth}x${c.clientHeight} dpr=${window.devicePixelRatio} sceneChildren=${scene.children.length} windroseGroup=${state.windroseGroup ? (state.windroseGroup.visible + '/' + state.windroseGroup.children.length + 'ch') : 'null'} glErr=${gl.getError()}`);
-      }
     } catch (err) {
       // MapLibre swallows exceptions thrown from inside a custom layer's
       // render() internally, so without this the building/wind rose would
       // just silently stop appearing with zero visible indication why.
-      debugLog('drawFrame() threw: ' + (err && (err.message || err)));
       if (!window.__buildingLayerErrorShown) {
         window.__buildingLayerErrorShown = true;
         console.error('buildingLayer render error:', err);
@@ -394,7 +337,6 @@
 
         camera.projectionMatrix = m.multiply(l);
       } catch (err) {
-        debugLog('buildingLayer.render() threw: ' + (err && (err.message || err)));
         if (!window.__buildingLayerErrorShown) {
           window.__buildingLayerErrorShown = true;
           console.error('buildingLayer render error:', err);
@@ -446,11 +388,9 @@
   // removing/re-adding for this, since buildingLayer owns no GL resources.
   threeCanvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
-    debugLog('webglcontextlost');
     renderer = null;
   }, false);
   threeCanvas.addEventListener('webglcontextrestored', () => {
-    debugLog('webglcontextrestored');
     renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     sharedGL = renderer.getContext();
     renderer.autoClear = false;
@@ -465,26 +405,8 @@
   let mapLoaded = false;
   map.once('load', () => {
     mapLoaded = true;
-    debugLog('map "load" fired');
     ensureBuildingLayer();
   });
-  map.on('idle', () => debugLog('map "idle" fired (tiles settled)'));
-  map.on('error', (e) => debugLog('map "error": ' + (e && e.error && e.error.message || e)));
-
-  // Read-only stall detector: samples the render count every 5s and only
-  // writes a log line when it actually changed since the last sample —
-  // unlike the earlier debug panel's unconditional periodic write, a
-  // sample that finds no change writes nothing, so this cannot itself be
-  // a compositor nudge. Distinguishes "still rendering, just not visible"
-  // from "stopped being called at all" without needing a fix guess.
-  let __lastSampledRenderCount = 0;
-  setInterval(() => {
-    const c = window.__renderOkCount || 0;
-    if (c !== __lastSampledRenderCount) {
-      debugLog(`render count now ${c} (was ${__lastSampledRenderCount})`);
-      __lastSampledRenderCount = c;
-    }
-  }, 5000);
 
   // Fallback for a missing/invalid key or being offline: if the real style
   // hasn't made ANY progress within a few seconds, fall back to a
