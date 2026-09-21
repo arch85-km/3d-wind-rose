@@ -13,3 +13,13 @@ url: "https://karam.me.uk/applications/3d-wind-rose/"
 repository-code: "https://github.com/arch85-km/3d-wind-rose"
 license: MIT
 doi: "10.5281/zenodo.22802663"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.22802663"
+    description: "Concept DOI — always resolves to the latest version"
+  - type: doi
+    value: "10.5281/zenodo.22812055"
+    description: "Version DOI — this release, 1.0.1"
+  - type: doi
+    value: "10.5281/zenodo.22802664"
+    description: "Version DOI — 1.0.0"
