@@ -193,6 +193,27 @@
   border:1px solid var(--wr-rule);overflow-x:auto;font-family:var(--wr-fm);
   font-size:.78rem;line-height:1.6;color:var(--wr-ink);white-space:pre;}
 
+/* Large screens. Most sizes here are in rem, which is relative to the ROOT
+   font size, not to .wr-doc — so raising .wr-doc alone would scale the body
+   copy and leave the byline, notes and references behind. They are stepped up
+   together. */
+@media (min-width:1280px){
+  .wr-doc{font-size:18.5px;max-width:1140px;}
+  .wr-doc .wr-standfirst{font-size:1.22rem;}
+  .wr-doc .wr-byline{font-size:.84rem;}
+  .wr-doc h3{font-size:1.14rem;}
+  .wr-doc .wr-note{font-size:.97rem;}
+  .wr-doc .wr-ref{font-size:1rem;}
+  .wr-doc .wr-cite{font-size:.86rem;}
+  .wr-doc pre{font-size:.86rem;}
+  .wr-doc .wr-ledger dt{font-size:1.02rem;}
+  .wr-doc .wr-ledger dd{font-size:1rem;}
+  .wr-doc .wr-chip{font-size:.70rem;}
+  .wr-doc .wr-traps h2{font-size:.88rem;}
+  .wr-doc .wr-steps{font-size:1rem;}
+  .wr-doc .wr-principle{font-size:.99rem;}
+  .wr-doc .wr-ex-n{font-size:.76rem;}
+}
 @media (max-width:720px){
   .wr-doc{--wr-rail:0px;font-size:16px;}
   .wr-doc .wr-sechead{grid-template-columns:1fr;gap:.35rem;}
@@ -208,11 +229,18 @@
 @media (prefers-reduced-motion:reduce){
   .wr-doc *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
 }
-.wr-doc .wr-fig{margin:0 0 1.2rem;}
-.wr-doc .wr-fig svg{display:block;width:100%;height:auto;
+/* Figures. A host theme usually styles <figure> and <figcaption> itself, and
+   its rules can be specific enough to win here — which is where an italic
+   caption and a caption sitting hard against the next paragraph come from.
+   The four properties that decide that are pinned, so the caption keeps this
+   page's own monospace label style wherever the fragment is pasted. */
+.wr-doc .wr-fig{margin:0 0 1.9rem !important;font-style:normal;}
+.wr-doc .wr-fig svg{display:block;width:100%;height:auto;font-style:normal;
   background:var(--wr-paper);border:1px solid var(--wr-rule);}
-.wr-doc .wr-fig figcaption{font-family:var(--wr-fm);font-size:.68rem;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--wr-ink3);margin-top:.55rem;}
+.wr-doc .wr-fig figcaption{font-family:var(--wr-fm) !important;
+  font-style:normal !important;font-size:.68rem;letter-spacing:.06em;line-height:1.5;
+  text-align:left;text-transform:uppercase;color:var(--wr-ink3);
+  margin:.7rem 0 0 !important;}
 .wr-doc .wr-footer h4:first-of-type{margin-top:1.1rem;}
 </style>
 
@@ -226,7 +254,8 @@
       frequency table and draws it. <b>No building enters that calculation</b> &mdash; loading a
       different model does not change a single frequency, calm percentage or monthly figure. The
       <a href="https://github.com/arch85-km/3d-wind-rose" target="_blank" rel="noopener">full method
-      notes</a> set out the parser, the presets and the provenance of every figure in full.</p>
+      notes</a> set out how the weather file is read, where the presets come from, and the
+      provenance of every figure in full.</p>
     <div class="wr-byline">
       <span><b>Audience</b> Architecture students and staff</span>
       <span><b>Method</b> EPW frequency binning &middot; no flow solved</span>
@@ -244,12 +273,13 @@
         rose describes the regional climate the station recorded, not the wind arriving at a
         particular building&rsquo;s fa&ccedil;ade. Use it to compare directions and seasons, not to
         read off a design wind speed.</li>
-      <li><b>Calm is excluded from the petals &mdash; but not from the denominator.</b> Records below
-        0.5&nbsp;m/s are counted as calm and never placed in a direction/speed cell. But the
-        percentage each cell shows is still divided by <em>every</em> record the table was built
-        from, calm hours included. So the petals of a rose with, say, 8.3% calm sum to 91.7%, not
-        100%. Quote the calm percentage alongside any reading from the petals, or the figures will
-        not reconcile for anyone checking your working.</li>
+      <li><b>Calm hours are counted, but they are not drawn.</b> An hour with a wind speed below
+        0.5&nbsp;m/s is recorded as calm and given no direction, so it appears in no petal. It is
+        still counted in the yearly total that every percentage is worked out against. So the petals
+        cannot add up to the whole year: add up every petal on a rose built from a file that is 8.3%
+        calm, and you get 91.7%. The missing 8.3% is the calm hours &mdash; counted, but drawn
+        nowhere. Always quote the calm percentage next to any figure you read off the petals, or
+        your numbers will not add up for anyone checking them.</li>
       <li><b>The wind data and the map location can be two different places &mdash; and
         &ldquo;Sheffield&rdquo; is Doncaster Airport.</b> The built-in Sheffield preset is recorded
         at Doncaster Sheffield Airport (WMO 034054), about 32&nbsp;km from the city centre and in a
@@ -277,10 +307,11 @@
       <p>Months are grouped by the EPW file&rsquo;s own month field and each group is binned
         independently, so a month&rsquo;s percentages are a share of that month&rsquo;s own hours,
         not of the year. Alongside the rose, the sidebar reports the total hours behind whichever
-        table is displayed and that table&rsquo;s calm percentage &mdash; both read straight from
-        the binning function&rsquo;s own output.</p>
+        table is displayed and that table&rsquo;s calm percentage &mdash; both taken from the same
+        count that builds the rose, not worked out separately.</p>
       <p class="wr-note">Summed across all 16 sectors and 5 bins, the petals add up to 100 minus the
-        calm percentage. That is not a rounding error; it is the denominator. See the second trap.</p>
+        calm percentage. That is not a rounding error &mdash; it is the calm hours, counted in the
+        total but drawn in no direction. See the second trap.</p>
     </div>
   </section>
 
@@ -1061,7 +1092,7 @@
     <p class="wr-ref">U.S. Department of Energy. (2023). <i>EnergyPlus Weather File (EPW) data
       dictionary</i>, in <i>Auxiliary Programs</i> (EnergyPlus 23.2 documentation).
       <a href="https://energyplus.net/documentation" target="_blank" rel="noopener">energyplus.net/documentation</a>
-      &mdash; the column layout the parser reads, and the work its own comment names.</p>
+      &mdash; the column layout the tool reads, and the work its own comment names.</p>
     <p class="wr-ref">Lawrie, L. K., &amp; Crawley, D. B. (2022). <i>Development of global typical
       meteorological years (TMYx)</i>. Climate.OneBuilding.Org.
       <a href="https://climate.onebuilding.org" target="_blank" rel="noopener">climate.onebuilding.org</a>
