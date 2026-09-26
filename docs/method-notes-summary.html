@@ -1,0 +1,1105 @@
+<!-- ======================================================================
+     3D WIND ROSE — "Method notes in brief"
+     A short companion to the full method notes.
+
+     Uses the SAME design system as the full notes: the .wr-doc scope, the same
+     custom properties, the same class names. Body type inherits from the site
+     (--wr-fb:inherit), so it picks up your serif exactly as the full notes do,
+     and it carries the same dark-mode block.
+
+     IF YOU PASTE THIS ON THE SAME PAGE AS THE FULL NOTES, delete the <style>
+     block below — the full notes already define every rule it contains, and
+     one copy is enough. On its own page, keep it.
+
+     THE CITATION STRIP JUMPS HERE. The "How to cite" heading below carries
+     id="how-to-cite", which is what the strip's "Version, BibTeX and licence"
+     link targets. Only ONE element per page may hold that id — so if the full
+     method notes are on this same page, remove the id from one of them.
+     ====================================================================== -->
+
+<style>
+.wr-doc{
+  --wr-paper:#F1F2EE; --wr-surface:#FBFBF9; --wr-surface2:#E8EAE4;
+  --wr-ink:#16191B; --wr-ink2:#4C555A; --wr-ink3:#5F696E;
+  --wr-rule:#D6D9D1; --wr-rule2:#E5E7E1;
+  --wr-accent:#1D5A73; --wr-accent-soft:rgba(29,90,115,.10);
+  --wr-ok:#3F6B47;  --wr-ok-soft:rgba(63,107,71,.12);
+  --wr-warn:#8A6410;--wr-warn-soft:rgba(138,100,16,.13);
+  --wr-no:#8E3A32;  --wr-no-soft:rgba(142,58,50,.11);
+  /* Headings and body follow the site's own typeface. `inherit` resolves where
+     it is used — inside .wr-doc, whose parent is the Elementor container — so
+     this keeps working if the theme font ever changes.
+     The monospace stack must NOT inherit: the table number columns use
+     font-variant-numeric:tabular-nums and align on fixed-width digits, and the
+     formulas and BibTeX block depend on their spacing. */
+  /* The site pairs a sans for headings with a serif for body, so the page
+     does the same. Body inherits — CSS has no way to inherit "the theme's
+     HEADING font", so that one is named. If the site's heading face ever
+     changes, this is the single line to update.
+     Weights sit at 600 throughout: the site ships Poppins 400/500/600 and
+     Source Serif 4 400/600, so 700 and 800 do not exist and the browser
+     would either drop to 600 or synthesise a smeared bold. Size carries the
+     hierarchy instead. */
+  --wr-fd:"Poppins",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --wr-fb:inherit;
+  --wr-fm:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --wr-measure:90ch; --wr-rail:4.75rem;
+
+  background:var(--wr-paper); color:var(--wr-ink);
+  font-family:var(--wr-fb); font-size:17px; line-height:1.65; font-weight:400;
+  max-width:1040px; margin:0 auto; padding:0 20px 4rem;
+  -webkit-font-smoothing:antialiased; text-align:left;
+}
+@media (prefers-color-scheme:dark){
+  .wr-doc.wr-auto-dark{
+    --wr-paper:#121517; --wr-surface:#191D20; --wr-surface2:#21262A;
+    --wr-ink:#E9EBE6; --wr-ink2:#A6AFB4; --wr-ink3:#79838A;
+    --wr-rule:#2C3235; --wr-rule2:#232829;
+    --wr-accent:#74B6D0; --wr-accent-soft:rgba(116,182,208,.14);
+    --wr-ok:#7FB88C;  --wr-ok-soft:rgba(127,184,140,.14);
+    --wr-warn:#D6A748;--wr-warn-soft:rgba(214,167,72,.15);
+    --wr-no:#DD8479;  --wr-no-soft:rgba(221,132,121,.14);
+  }
+}
+
+/* local reset — only inside .wr-doc */
+.wr-doc *,.wr-doc *::before,.wr-doc *::after{box-sizing:border-box;}
+.wr-doc h1,.wr-doc h2,.wr-doc h3,.wr-doc h4,.wr-doc p,.wr-doc ul,.wr-doc ol,
+.wr-doc dl,.wr-doc dt,.wr-doc dd,.wr-doc table,.wr-doc figure{margin:0;padding:0;}
+.wr-doc ul,.wr-doc ol{list-style-position:outside;}
+.wr-doc li{margin:0;}
+.wr-doc img{max-width:100%;height:auto;}
+.wr-doc a{color:var(--wr-accent);text-decoration:underline;text-underline-offset:2px;}
+.wr-doc a:focus-visible{outline:2px solid var(--wr-accent);outline-offset:3px;}
+.wr-doc code,.wr-doc .wr-mono{font-family:var(--wr-fm);font-size:.855em;}
+/* Inline bold defaults to 700. A site that ships only 400/500/600 has no such
+   face, so the browser either drops to 600 or fakes one by smearing the 400.
+   Pin it to a weight that exists. */
+.wr-doc b,.wr-doc strong{font-weight:600;}
+.wr-doc code{background:var(--wr-accent-soft);color:var(--wr-accent);
+  padding:.1em .34em;border-radius:2px;border:0;}
+
+/* masthead */
+.wr-doc .wr-masthead{padding:3.5rem 0 2.25rem;border-bottom:2px solid var(--wr-ink);}
+.wr-doc .wr-eyebrow{font-family:var(--wr-fm);font-size:.70rem;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--wr-accent);margin:0 0 1.1rem;}
+.wr-doc h1{font-family:var(--wr-fd);font-weight:600;
+  font-size:clamp(2.1rem,6.2vw,3.35rem);line-height:1.02;letter-spacing:-.028em;
+  text-wrap:balance;margin:0 0 1.1rem;color:var(--wr-ink);}
+.wr-doc .wr-standfirst{max-width:var(--wr-measure);font-size:1.14rem;line-height:1.6;
+  color:var(--wr-ink2);margin:0;}
+.wr-doc .wr-standfirst strong{color:var(--wr-ink);font-weight:600;}
+.wr-doc .wr-byline{display:flex;flex-wrap:wrap;gap:.5rem 1.6rem;margin-top:1.9rem;
+  font-family:var(--wr-fm);font-size:.74rem;letter-spacing:.04em;color:var(--wr-ink3);}
+.wr-doc .wr-byline b{color:var(--wr-ink2);font-weight:500;}
+
+/* trap notice */
+.wr-doc .wr-traps{margin:2.5rem 0;border:1px solid var(--wr-rule);
+  border-left:4px solid var(--wr-no);background:var(--wr-surface);padding:1.5rem 1.6rem;}
+.wr-doc .wr-traps h2{font-family:var(--wr-fd);font-size:.82rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wr-no);margin:0 0 .9rem;}
+.wr-doc .wr-traps ol{margin:0;padding-left:1.15rem;display:grid;gap:.6rem;}
+.wr-doc .wr-traps li{max-width:var(--wr-measure);}
+
+/* sections */
+.wr-doc .wr-sec{padding:3.25rem 0 0;}
+.wr-doc .wr-sechead{display:grid;grid-template-columns:var(--wr-rail) 1fr;
+  align-items:baseline;gap:0 1rem;border-top:1px solid var(--wr-rule);
+  padding-top:1.4rem;margin-bottom:1.6rem;}
+.wr-doc .wr-secnum{font-family:var(--wr-fm);font-size:.95rem;font-weight:600;
+  color:var(--wr-accent);letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.wr-doc .wr-sechead h2{font-family:var(--wr-fd);font-weight:600;
+  font-size:clamp(1.45rem,3.3vw,1.95rem);line-height:1.12;letter-spacing:-.02em;
+  text-wrap:balance;margin:0;color:var(--wr-ink);}
+.wr-doc .wr-secbody{display:grid;grid-template-columns:var(--wr-rail) minmax(0,1fr);gap:0 1rem;}
+.wr-doc .wr-secbody>*{grid-column:2;}
+.wr-doc .wr-secbody>p,.wr-doc .wr-secbody>ul,.wr-doc .wr-secbody>ol{max-width:var(--wr-measure);}
+.wr-doc .wr-secbody>p{margin:0 0 1.05rem;}
+.wr-doc .wr-secbody>ul,.wr-doc .wr-secbody>ol{margin:0 0 1.15rem;padding-left:1.15rem;
+  display:grid;gap:.5rem;}
+.wr-doc h3{font-family:var(--wr-fd);font-weight:600;font-size:1.06rem;
+  letter-spacing:-.005em;margin:1.9rem 0 .7rem;color:var(--wr-ink);}
+.wr-doc .wr-secbody>h3:first-child{margin-top:0;}
+.wr-doc h4{font-family:var(--wr-fm);font-weight:600;font-size:.74rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--wr-ink3);margin:1.6rem 0 .6rem;}
+
+.wr-doc .wr-formula{font-family:var(--wr-fm);font-size:.84rem;line-height:1.75;
+  background:var(--wr-surface);border:1px solid var(--wr-rule);
+  border-left:3px solid var(--wr-accent);padding:.95rem 1.1rem;margin:0 0 1.2rem;
+  overflow-x:auto;white-space:pre;color:var(--wr-ink);}
+.wr-doc .wr-formula em{color:var(--wr-ink3);font-style:normal;}
+.wr-doc .wr-note{font-size:.9rem;color:var(--wr-ink2);border-left:2px solid var(--wr-rule);
+  padding-left:.95rem;margin:0 0 1.2rem;max-width:var(--wr-measure);}
+
+/* tables */
+.wr-doc .wr-tbl{overflow-x:auto;margin:0 0 1.4rem;border:1px solid var(--wr-rule);
+  background:var(--wr-surface);}
+.wr-doc .wr-tbl table{border-collapse:collapse;width:100%;font-size:.845rem;
+  line-height:1.45;background:transparent;}
+.wr-doc .wr-tbl th,.wr-doc .wr-tbl td{padding:.5rem .7rem;text-align:left;
+  vertical-align:top;border:0;border-bottom:1px solid var(--wr-rule2);color:var(--wr-ink);}
+.wr-doc .wr-tbl thead th{font-family:var(--wr-fm);font-size:.68rem;font-weight:600;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--wr-ink3);
+  background:var(--wr-surface2);border-bottom:1px solid var(--wr-rule);white-space:nowrap;}
+.wr-doc .wr-tbl tbody tr:last-child td{border-bottom:0;}
+.wr-doc .wr-tbl tbody tr{background:transparent;}
+.wr-doc .wr-tbl .wr-n{text-align:right;font-family:var(--wr-fm);
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+.wr-doc .wr-tbl .wr-p{font-family:var(--wr-fm);font-size:.8rem;white-space:nowrap;}
+.wr-doc .wr-tbl .wr-d{font-family:var(--wr-fm);font-variant-numeric:tabular-nums;
+  white-space:nowrap;color:var(--wr-accent);font-weight:500;text-align:right;}
+.wr-doc .wr-tbl caption{caption-side:bottom;text-align:left;padding:.6rem .7rem;
+  font-size:.78rem;color:var(--wr-ink3);border-top:1px solid var(--wr-rule2);}
+
+/* chips + ledger */
+.wr-doc .wr-chip{display:inline-block;font-family:var(--wr-fm);font-size:.64rem;
+  font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:.15em .5em;
+  border-radius:2px;white-space:nowrap;}
+.wr-doc .wr-chip.is-in{background:var(--wr-ok-soft);color:var(--wr-ok);}
+.wr-doc .wr-chip.is-part{background:var(--wr-warn-soft);color:var(--wr-warn);}
+.wr-doc .wr-chip.is-out{background:var(--wr-no-soft);color:var(--wr-no);}
+.wr-doc .wr-ledger{display:grid;gap:0;border:1px solid var(--wr-rule);
+  background:var(--wr-surface);margin-bottom:1.4rem;}
+.wr-doc .wr-ledger>div{display:grid;grid-template-columns:7.5rem minmax(0,1fr);
+  gap:.2rem .9rem;padding:.8rem 1rem;border-bottom:1px solid var(--wr-rule2);}
+.wr-doc .wr-ledger>div:last-child{border-bottom:0;}
+.wr-doc .wr-ledger dt{font-family:var(--wr-fd);font-weight:600;font-size:.95rem;
+  grid-column:2;margin:0;color:var(--wr-ink);}
+.wr-doc .wr-ledger .wr-chip{grid-row:1;grid-column:1;align-self:start;margin-top:.18rem;}
+.wr-doc .wr-ledger dd{grid-column:2;margin:0;font-size:.93rem;color:var(--wr-ink2);
+  line-height:1.55;}
+
+/* exercises */
+.wr-doc .wr-ex{border:1px solid var(--wr-rule);background:var(--wr-surface);
+  padding:1.5rem 1.6rem;margin-bottom:1.5rem;}
+.wr-doc .wr-ex-n{font-family:var(--wr-fm);font-size:.7rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wr-accent);
+  display:block;margin-bottom:.35rem;}
+.wr-doc .wr-ex h3{margin:0 0 .9rem;font-size:1.18rem;}
+.wr-doc .wr-steps{margin:0;padding-left:1.2rem;display:grid;gap:.5rem;font-size:.95rem;}
+.wr-doc .wr-steps code{font-size:.8rem;}
+.wr-doc .wr-principle{font-size:.93rem;color:var(--wr-ink2);
+  border-top:1px solid var(--wr-rule2);padding-top:.85rem;margin:.95rem 0 0;}
+.wr-doc .wr-principle b{color:var(--wr-ink);font-weight:600;}
+
+/* footer */
+.wr-doc .wr-footer{margin-top:4rem;padding-top:1.6rem;border-top:2px solid var(--wr-ink);
+  font-size:.86rem;color:var(--wr-ink2);}
+.wr-doc .wr-footer p{max-width:var(--wr-measure);margin:0 0 .8rem;}
+.wr-doc .wr-cite{font-family:var(--wr-fm);font-size:.78rem;color:var(--wr-ink3);line-height:1.7;}
+.wr-doc .wr-ref{border-left:2px solid var(--wr-rule);padding-left:.95rem;margin:0 0 1rem;
+  max-width:var(--wr-measure);font-size:.92rem;color:var(--wr-ink2);}
+.wr-doc pre{margin:0 0 1rem;padding:.9rem 1rem;background:var(--wr-surface);
+  border:1px solid var(--wr-rule);overflow-x:auto;font-family:var(--wr-fm);
+  font-size:.78rem;line-height:1.6;color:var(--wr-ink);white-space:pre;}
+
+@media (max-width:720px){
+  .wr-doc{--wr-rail:0px;font-size:16px;}
+  .wr-doc .wr-sechead{grid-template-columns:1fr;gap:.35rem;}
+  .wr-doc .wr-secbody{grid-template-columns:minmax(0,1fr);}
+  .wr-doc .wr-secbody>*{grid-column:1;}
+  .wr-doc .wr-traps,.wr-doc .wr-ex{padding:1.15rem;}
+}
+@media (max-width:560px){
+  .wr-doc .wr-ledger>div{grid-template-columns:1fr;}
+  .wr-doc .wr-ledger .wr-chip{grid-row:auto;grid-column:1;justify-self:start;margin-bottom:.3rem;}
+  .wr-doc .wr-ledger dt,.wr-doc .wr-ledger dd{grid-column:1;}
+}
+@media (prefers-reduced-motion:reduce){
+  .wr-doc *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
+.wr-doc .wr-fig{margin:0 0 1.2rem;}
+.wr-doc .wr-fig svg{display:block;width:100%;height:auto;
+  background:var(--wr-paper);border:1px solid var(--wr-rule);}
+.wr-doc .wr-fig figcaption{font-family:var(--wr-fm);font-size:.68rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--wr-ink3);margin-top:.55rem;}
+.wr-doc .wr-footer h4:first-of-type{margin-top:1.1rem;}
+</style>
+
+<div class="wr-doc wr-auto-dark">
+
+  <div class="wr-masthead">
+    <p class="wr-eyebrow">3D Wind Rose &middot; In brief</p>
+    <h1>Method notes in brief</h1>
+    <p class="wr-standfirst">The short version: what the tool counts, and <strong>how far a number
+      off the rose can be carried</strong>. It bins recorded climate data into a 16-direction
+      frequency table and draws it. <b>No building enters that calculation</b> &mdash; loading a
+      different model does not change a single frequency, calm percentage or monthly figure. The
+      <a href="https://github.com/arch85-km/3d-wind-rose" target="_blank" rel="noopener">full method
+      notes</a> set out the parser, the presets and the provenance of every figure in full.</p>
+    <div class="wr-byline">
+      <span><b>Audience</b> Architecture students and staff</span>
+      <span><b>Method</b> EPW frequency binning &middot; no flow solved</span>
+      <span><b>Runs</b> Entirely in the browser</span>
+      <span><b>Version</b> 1.0.1 &middot; 17 September 2026</span>
+    </div>
+  </div>
+
+  <div class="wr-traps">
+    <h2>Three things to know before you cite a number</h2>
+    <ol>
+      <li><b>The rose is the weather station&rsquo;s climate, not the site&rsquo;s wind.</b> EPW wind
+        speed is a 10&nbsp;m open-country measurement taken at the station. No height, terrain or
+        roughness correction, and no displacement adjustment, exists anywhere in the code. So the
+        rose describes the regional climate the station recorded, not the wind arriving at a
+        particular building&rsquo;s fa&ccedil;ade. Use it to compare directions and seasons, not to
+        read off a design wind speed.</li>
+      <li><b>Calm is excluded from the petals &mdash; but not from the denominator.</b> Records below
+        0.5&nbsp;m/s are counted as calm and never placed in a direction/speed cell. But the
+        percentage each cell shows is still divided by <em>every</em> record the table was built
+        from, calm hours included. So the petals of a rose with, say, 8.3% calm sum to 91.7%, not
+        100%. Quote the calm percentage alongside any reading from the petals, or the figures will
+        not reconcile for anyone checking your working.</li>
+      <li><b>The wind data and the map location can be two different places &mdash; and
+        &ldquo;Sheffield&rdquo; is Doncaster Airport.</b> The built-in Sheffield preset is recorded
+        at Doncaster Sheffield Airport (WMO 034054), about 32&nbsp;km from the city centre and in a
+        different landscape: the airport sits in the lowland Don valley at roughly 9&nbsp;m, the city
+        centre at roughly 60&nbsp;m with the Peak District immediately west. The tool&rsquo;s own
+        label says so &mdash; <span class="wr-mono">&ldquo;Sheffield (Doncaster Airport)&rdquo;</span>
+        &mdash; but the parenthesis is easy to read past. More generally, the tool tracks the gap
+        between where the loaded wind data came from and wherever the map is centred, and warns once
+        that gap passes 50&nbsp;km.</li>
+    </ol>
+  </div>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>What it computes</h2></div>
+    <div class="wr-secbody">
+      <p>A frequency table, binned once from whichever EPW records are loaded, drawn as a stack of
+        coloured wedges. Nothing else. Sixteen direction sectors of 22.5&deg; each, five speed bins
+        &mdash; 0&ndash;2, 2&ndash;4, 4&ndash;6, 6&ndash;8 and an open-ended 8+&nbsp;m/s &mdash; and
+        one percentage per cell, count divided by total records. Records below 0.5&nbsp;m/s are
+        calm and sit outside every sector.</p>
+      <p>Sector assignment uses <span class="wr-mono">Math.round(direction &divide; 22.5) mod 16</span>,
+        not <span class="wr-mono">Math.floor</span>. That matters when you read a petal: sector 0
+        spans 348.75&deg;&ndash;11.25&deg;, <em>centred</em> on due north, rather than running from
+        0&deg; to 22.5&deg;. Every sector is centred on its compass point the same way.</p>
+      <p>Months are grouped by the EPW file&rsquo;s own month field and each group is binned
+        independently, so a month&rsquo;s percentages are a share of that month&rsquo;s own hours,
+        not of the year. Alongside the rose, the sidebar reports the total hours behind whichever
+        table is displayed and that table&rsquo;s calm percentage &mdash; both read straight from
+        the binning function&rsquo;s own output.</p>
+      <p class="wr-note">Summed across all 16 sectors and 5 bins, the petals add up to 100 minus the
+        calm percentage. That is not a rounding error; it is the denominator. See the second trap.</p>
+    </div>
+  </section>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>The building is not in the calculation</h2></div>
+    <div class="wr-secbody">
+      <p>This is the single most important thing to understand about the tool, and the easiest to
+        forget, because a building is sitting right there on screen next to the rose. The two files
+        that produce every number the rose shows &mdash; <span class="wr-mono">js/epw.js</span> and
+        <span class="wr-mono">js/windrose.js</span> &mdash; take a plain list of
+        <span class="wr-mono">{direction, speed, month}</span> records and nothing else. Neither file
+        contains any reference to a building, a model or a footprint. Loading a different
+        <span class="wr-mono">.obj</span> changes how large the rose is drawn, and nothing about what
+        it says.</p>
+      <p>What follows from that is a list of things a general wind-analysis package might offer and
+        this tool does not:</p>
+      <dl class="wr-ledger">
+        <div><span class="wr-chip is-out">Out</span><dt>Any influence of the building or its surroundings</dt><dd>No downwash, channelling, wake or shelter. The rose has no idea a building is present.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Height correction</dt><dd>EPW wind speed is measured at 10 m in open country at the station. No code anywhere adjusts it to any other height.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Terrain and roughness</dt><dd>No roughness length, terrain category or displacement height appears anywhere in the source.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Gust factors and exceedance statistics</dt><dd>Mean hourly frequencies only. No gust-equivalent speed, no exceedance probability of any kind.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Weibull or any distribution fitting</dt><dd>The rose is a direct histogram of recorded hours. No distribution is fitted to it.</dd></div>
+        <div><span class="wr-chip is-out">Out</span><dt>Comfort criteria of any kind</dt><dd>No comfort classes are assigned &mdash; unlike the sister tool, Urban Wind Lab, which applies (and heavily caveats) Lawson bands. A wind rose alone, with no flow field and no correction to the wind actually reaching a building, cannot support a comfort claim.</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>The question is not precision, it is representativeness</h2></div>
+    <div class="wr-secbody">
+      <p>Unlike a solver, there is no approximation in the arithmetic: a frequency is a count divided
+        by a total, computed once and read straight into the rose. So the honest question is a
+        different one &mdash; what a correctly counted number from <em>this particular source</em>
+        can and cannot tell you. Four things limit that, independently of each other.</p>
+      <p><b>The source year.</b> A TMYx file is a synthesised representative year, assembled by
+        picking the most statistically representative version of each calendar month from many years
+        at that station and stitching the twelve together. No date inside it corresponds to weather
+        that actually occurred on that date.
+        <b>The 22.5&deg; sector.</b> Two real peaks 15&deg; apart are drawn as one.
+        <b>The five bins, with an open top.</b> Nothing distinguishes a 9&nbsp;m/s hour from a
+        20&nbsp;m/s hour &mdash; both fall in &ldquo;8+&rdquo;.
+        <b>The station itself.</b> A 10&nbsp;m open-country reading, uncorrected, as above.</p>
+
+      <h3>The rose&rsquo;s drawn size is not data</h3>
+      <p>The rose&rsquo;s inner radius, its overall span and even its petal thickness are all set
+        from the loaded model&rsquo;s footprint &mdash; or from a fixed default footprint when
+        nothing is loaded &mdash; and the whole drawing is then rescaled so the tallest
+        direction&rsquo;s stack always reaches the same span. Two roses are therefore never
+        comparable by their size on screen: a small-looking rose over a large building and a
+        large-looking rose over a small one can show identical wind climates. Only the proportions
+        <em>within</em> one rose &mdash; which direction is tallest, how the bins stack &mdash; carry
+        any information at all.</p>
+    </div>
+  </section>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>What you may and may not quote</h2></div>
+    <div class="wr-secbody">
+      <ul>
+        <li><b>May:</b> the prevailing direction, and how the petal proportions change between two
+          months or two locations.</li>
+        <li><b>May:</b> the calm percentage &mdash; and quote it alongside any petal reading, not
+          instead of one.</li>
+        <li><b>May not:</b> a wind speed at a building, read off the rose as if it were measured
+          there. The source never leaves the weather station.</li>
+        <li><b>May not:</b> a comfort or shelter claim of any kind. The tool computes none.</li>
+        <li><b>May not:</b> the rose&rsquo;s size on screen, as evidence of anything. It is
+          auto-scaled to the building&rsquo;s footprint, not to the data.</li>
+      </ul>
+      <p class="wr-note">Three UK locations are built in, all binned from real recorded TMYx EPW
+        files of 8,760 hourly observations each, with a genuine month-by-month breakdown: London
+        (St James&rsquo;s Park, WMO&nbsp;037700), Sheffield (Doncaster Airport, WMO&nbsp;034054) and
+        Edinburgh (Turnhouse Airport, WMO&nbsp;031600). Name the station, not the city, when you
+        report a figure.</p>
+    </div>
+  </section>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>Three exercises</h2></div>
+    <div class="wr-secbody">
+      <p>Each teaches one principle using only the built-in presets &mdash; no upload needed &mdash;
+        and takes ten to fifteen minutes. The diagrams beside them are schematic: they show the
+        mechanism, not the output of any particular run.</p>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 01</span>
+        <h3>The prevailing direction moves with the seasons</h3>
+        <figure class="wr-fig">
+<svg viewBox="0 0 720 294" role="img" aria-label="The same location drawn three times: January, July and the annual average. In January the tallest petals point south-west; in July they point west and north-west; the annual rose is a blend that matches neither month.">
+  <text x="20" y="22" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" fill="var(--wr-ink)">ONE LOCATION &#183; THREE ROSES</text>
+  <circle cx="130" cy="140" r="62.0" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M127.7 128.2 L127.6 127.4 A12.8 12.8 0 0 1 132.4 127.4 L132.3 128.2 A12.0 12.0 0 0 0 127.7 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M127.6 127.4 L127.4 126.7 A13.5 13.5 0 0 1 132.6 126.7 L132.4 127.4 A12.8 12.8 0 0 0 127.6 127.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M127.4 126.7 L127.3 126.3 A14.0 14.0 0 0 1 132.7 126.3 L132.6 126.7 A13.5 13.5 0 0 0 127.4 126.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M127.3 126.3 L127.3 126.0 A14.3 14.3 0 0 1 132.7 126.0 L132.7 126.3 A14.0 14.0 0 0 0 127.3 126.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M127.3 126.0 L127.2 125.8 A14.4 14.4 0 0 1 132.8 125.8 L132.7 126.0 A14.3 14.3 0 0 0 127.3 126.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M132.4 128.2 L132.6 127.4 A12.8 12.8 0 0 1 137.1 129.3 L136.6 130.0 A12.0 12.0 0 0 0 132.4 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M132.6 127.4 L132.7 126.8 A13.5 13.5 0 0 1 137.5 128.7 L137.1 129.3 A12.8 12.8 0 0 0 132.6 127.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M132.7 126.8 L132.8 126.3 A14.0 14.0 0 0 1 137.7 128.3 L137.5 128.7 A13.5 13.5 0 0 0 132.7 126.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M132.8 126.3 L132.9 126.0 A14.3 14.3 0 0 1 137.9 128.1 L137.7 128.3 A14.0 14.0 0 0 0 132.8 126.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M132.9 126.0 L132.9 125.8 A14.4 14.4 0 0 1 138.0 128.0 L137.9 128.1 A14.3 14.3 0 0 0 132.9 126.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M136.7 130.1 L137.2 129.4 A12.8 12.8 0 0 1 140.6 132.8 L139.9 133.3 A12.0 12.0 0 0 0 136.7 130.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M137.2 129.4 L137.6 128.8 A13.5 13.5 0 0 1 141.2 132.4 L140.6 132.8 A12.8 12.8 0 0 0 137.2 129.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M137.6 128.8 L137.8 128.4 A14.0 14.0 0 0 1 141.6 132.2 L141.2 132.4 A13.5 13.5 0 0 0 137.6 128.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M137.8 128.4 L138.0 128.1 A14.3 14.3 0 0 1 141.9 132.0 L141.6 132.2 A14.0 14.0 0 0 0 137.8 128.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M138.0 128.1 L138.1 128.0 A14.4 14.4 0 0 1 142.0 131.9 L141.9 132.0 A14.3 14.3 0 0 0 138.0 128.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M140.0 133.4 L140.7 132.9 A12.8 12.8 0 0 1 142.6 137.4 L141.8 137.6 A12.0 12.0 0 0 0 140.0 133.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M140.7 132.9 L141.3 132.5 A13.5 13.5 0 0 1 143.2 137.3 L142.6 137.4 A12.8 12.8 0 0 0 140.7 132.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M141.3 132.5 L141.7 132.3 A14.0 14.0 0 0 1 143.7 137.2 L143.2 137.3 A13.5 13.5 0 0 0 141.3 132.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M141.7 132.3 L141.9 132.1 A14.3 14.3 0 0 1 144.0 137.1 L143.7 137.2 A14.0 14.0 0 0 0 141.7 132.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M141.9 132.1 L142.0 132.0 A14.4 14.4 0 0 1 144.2 137.1 L144.0 137.1 A14.3 14.3 0 0 0 141.9 132.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M141.8 137.7 L142.6 137.6 A12.8 12.8 0 0 1 142.6 142.4 L141.8 142.3 A12.0 12.0 0 0 0 141.8 137.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M142.6 137.6 L143.3 137.4 A13.5 13.5 0 0 1 143.3 142.6 L142.6 142.4 A12.8 12.8 0 0 0 142.6 137.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M143.3 137.4 L143.7 137.3 A14.0 14.0 0 0 1 143.7 142.7 L143.3 142.6 A13.5 13.5 0 0 0 143.3 137.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M143.7 137.3 L144.0 137.3 A14.3 14.3 0 0 1 144.0 142.7 L143.7 142.7 A14.0 14.0 0 0 0 143.7 137.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M144.0 137.3 L144.2 137.2 A14.4 14.4 0 0 1 144.2 142.8 L144.0 142.7 A14.3 14.3 0 0 0 144.0 137.3 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M141.8 142.4 L142.6 142.6 A12.8 12.8 0 0 1 140.7 147.1 L140.0 146.6 A12.0 12.0 0 0 0 141.8 142.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M142.6 142.6 L143.3 142.7 A13.5 13.5 0 0 1 141.3 147.5 L140.7 147.1 A12.8 12.8 0 0 0 142.6 142.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M143.3 142.7 L143.7 142.8 A14.0 14.0 0 0 1 141.7 147.7 L141.3 147.5 A13.5 13.5 0 0 0 143.3 142.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M143.7 142.8 L144.0 142.9 A14.3 14.3 0 0 1 141.9 147.9 L141.7 147.7 A14.0 14.0 0 0 0 143.7 142.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M144.0 142.9 L144.2 142.9 A14.5 14.5 0 0 1 142.1 148.0 L141.9 147.9 A14.3 14.3 0 0 0 144.0 142.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M139.9 146.7 L140.7 147.2 A12.9 12.9 0 0 1 137.2 150.7 L136.7 149.9 A12.0 12.0 0 0 0 139.9 146.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M140.7 147.2 L141.4 147.7 A13.7 13.7 0 0 1 137.7 151.4 L137.2 150.7 A12.9 12.9 0 0 0 140.7 147.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M141.4 147.7 L141.8 148.0 A14.3 14.3 0 0 1 138.0 151.8 L137.7 151.4 A13.7 13.7 0 0 0 141.4 147.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M141.8 148.0 L142.1 148.2 A14.6 14.6 0 0 1 138.2 152.1 L138.0 151.8 A14.3 14.3 0 0 0 141.8 148.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M142.1 148.2 L142.2 148.3 A14.8 14.8 0 0 1 138.3 152.2 L138.2 152.1 A14.6 14.6 0 0 0 142.1 148.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M136.6 150.0 L137.7 151.7 A14.0 14.0 0 0 1 132.8 153.7 L132.4 151.8 A12.0 12.0 0 0 0 136.6 150.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M137.7 151.7 L138.6 153.0 A15.6 15.6 0 0 1 133.1 155.3 L132.8 153.7 A14.0 14.0 0 0 0 137.7 151.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M138.6 153.0 L139.3 154.0 A16.8 16.8 0 0 1 133.3 156.5 L133.1 155.3 A15.6 15.6 0 0 0 138.6 153.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M139.3 154.0 L139.7 154.6 A17.5 17.5 0 0 1 133.5 157.1 L133.3 156.5 A16.8 16.8 0 0 0 139.3 154.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M139.7 154.6 L139.8 154.9 A17.8 17.8 0 0 1 133.6 157.5 L133.5 157.1 A17.5 17.5 0 0 0 139.7 154.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M132.3 151.8 L133.5 158.2 A18.6 18.6 0 0 1 126.5 158.2 L127.7 151.8 A12.0 12.0 0 0 0 132.3 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M133.5 158.2 L134.6 163.5 A23.9 23.9 0 0 1 125.4 163.5 L126.5 158.2 A18.6 18.6 0 0 0 133.5 158.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M134.6 163.5 L135.3 167.3 A27.8 27.8 0 0 1 124.7 167.3 L125.4 163.5 A23.9 23.9 0 0 0 134.6 163.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M135.3 167.3 L135.7 169.6 A30.1 30.1 0 0 1 124.3 169.6 L124.7 167.3 A27.8 27.8 0 0 0 135.3 167.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M135.7 169.6 L136.0 170.7 A31.3 31.3 0 0 1 124.0 170.7 L124.3 169.6 A30.1 30.1 0 0 0 135.7 169.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M127.6 151.8 L124.7 166.0 A26.6 26.6 0 0 1 115.3 162.2 L123.4 150.0 A12.0 12.0 0 0 0 127.6 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M124.7 166.0 L122.3 177.8 A38.6 38.6 0 0 1 108.7 172.2 L115.3 162.2 A26.6 26.6 0 0 0 124.7 166.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M122.3 177.8 L120.6 186.2 A47.1 47.1 0 0 1 104.0 179.3 L108.7 172.2 A38.6 38.6 0 0 0 122.3 177.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M120.6 186.2 L119.6 191.2 A52.3 52.3 0 0 1 101.1 183.6 L104.0 179.3 A47.1 47.1 0 0 0 120.6 186.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M119.6 191.2 L119.1 193.8 A54.9 54.9 0 0 1 99.7 185.7 L101.1 183.6 A52.3 52.3 0 0 0 119.6 191.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M123.3 149.9 L113.8 164.0 A29.0 29.0 0 0 1 106.0 156.2 L120.1 146.7 A12.0 12.0 0 0 0 123.3 149.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M113.8 164.0 L106.0 175.6 A43.0 43.0 0 0 1 94.4 164.0 L106.0 156.2 A29.0 29.0 0 0 0 113.8 164.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M106.0 175.6 L100.4 183.9 A53.0 53.0 0 0 1 86.1 169.6 L94.4 164.0 A43.0 43.0 0 0 0 106.0 175.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M100.4 183.9 L97.0 188.9 A59.0 59.0 0 0 1 81.1 173.0 L86.1 169.6 A53.0 53.0 0 0 0 100.4 183.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M97.0 188.9 L95.3 191.4 A62.0 62.0 0 0 1 78.6 174.7 L81.1 173.0 A59.0 59.0 0 0 0 97.0 188.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M120.0 146.6 L111.9 152.0 A21.7 21.7 0 0 1 108.7 144.3 L118.2 142.4 A12.0 12.0 0 0 0 120.0 146.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M111.9 152.0 L105.3 156.4 A29.7 29.7 0 0 1 100.9 145.9 L108.7 144.3 A21.7 21.7 0 0 0 111.9 152.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M105.3 156.4 L100.5 159.5 A35.4 35.4 0 0 1 95.3 147.1 L100.9 145.9 A29.7 29.7 0 0 0 105.3 156.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M100.5 159.5 L97.6 161.4 A38.8 38.8 0 0 1 92.0 147.7 L95.3 147.1 A35.4 35.4 0 0 0 100.5 159.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M97.6 161.4 L96.2 162.4 A40.5 40.5 0 0 1 90.3 148.1 L92.0 147.7 A38.8 38.8 0 0 0 97.6 161.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M118.2 142.3 L115.3 142.9 A15.0 15.0 0 0 1 115.3 137.1 L118.2 137.7 A12.0 12.0 0 0 0 118.2 142.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M115.3 142.9 L112.9 143.3 A17.4 17.4 0 0 1 112.9 136.7 L115.3 137.1 A15.0 15.0 0 0 0 115.3 142.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M112.9 143.3 L111.2 143.6 A19.1 19.1 0 0 1 111.2 136.4 L112.9 136.7 A17.4 17.4 0 0 0 112.9 143.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M111.2 143.6 L110.2 143.8 A20.2 20.2 0 0 1 110.2 136.2 L111.2 136.4 A19.1 19.1 0 0 0 111.2 143.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M110.2 143.8 L109.7 143.9 A20.7 20.7 0 0 1 109.7 136.1 L110.2 136.2 A20.2 20.2 0 0 0 110.2 143.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M118.2 137.6 L117.2 137.4 A13.0 13.0 0 0 1 119.1 132.8 L120.0 133.4 A12.0 12.0 0 0 0 118.2 137.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M117.2 137.4 L116.4 137.2 A13.9 13.9 0 0 1 118.4 132.3 L119.1 132.8 A13.0 13.0 0 0 0 117.2 137.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M116.4 137.2 L115.8 137.1 A14.5 14.5 0 0 1 117.9 132.0 L118.4 132.3 A13.9 13.9 0 0 0 116.4 137.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M115.8 137.1 L115.4 137.0 A14.9 14.9 0 0 1 117.6 131.8 L117.9 132.0 A14.5 14.5 0 0 0 115.8 137.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M115.4 137.0 L115.2 137.0 A15.1 15.1 0 0 1 117.4 131.7 L117.6 131.8 A14.9 14.9 0 0 0 115.4 137.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M120.1 133.3 L119.4 132.8 A12.8 12.8 0 0 1 122.8 129.4 L123.3 130.1 A12.0 12.0 0 0 0 120.1 133.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M119.4 132.8 L118.8 132.4 A13.5 13.5 0 0 1 122.4 128.8 L122.8 129.4 A12.8 12.8 0 0 0 119.4 132.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M118.8 132.4 L118.4 132.2 A14.0 14.0 0 0 1 122.2 128.4 L122.4 128.8 A13.5 13.5 0 0 0 118.8 132.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M118.4 132.2 L118.1 132.0 A14.3 14.3 0 0 1 122.0 128.1 L122.2 128.4 A14.0 14.0 0 0 0 118.4 132.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M118.1 132.0 L118.0 131.9 A14.5 14.5 0 0 1 121.9 128.0 L122.0 128.1 A14.3 14.3 0 0 0 118.1 132.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M123.4 130.0 L122.9 129.3 A12.8 12.8 0 0 1 127.4 127.4 L127.6 128.2 A12.0 12.0 0 0 0 123.4 130.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M122.9 129.3 L122.5 128.7 A13.5 13.5 0 0 1 127.3 126.8 L127.4 127.4 A12.8 12.8 0 0 0 122.9 129.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M122.5 128.7 L122.3 128.3 A14.0 14.0 0 0 1 127.2 126.3 L127.3 126.8 A13.5 13.5 0 0 0 122.5 128.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M122.3 128.3 L122.1 128.1 A14.3 14.3 0 0 1 127.1 126.0 L127.2 126.3 A14.0 14.0 0 0 0 122.3 128.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M122.1 128.1 L122.0 128.0 A14.4 14.4 0 0 1 127.1 125.8 L127.1 126.0 A14.3 14.3 0 0 0 122.1 128.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="130" y="68" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="205" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="130" y="218" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="55" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <circle cx="360" cy="140" r="62.0" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M357.7 128.2 L357.1 124.9 A15.3 15.3 0 0 1 362.9 124.9 L362.3 128.2 A12.0 12.0 0 0 0 357.7 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M357.1 124.9 L356.5 122.2 A18.1 18.1 0 0 1 363.5 122.2 L362.9 124.9 A15.3 15.3 0 0 0 357.1 124.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M356.5 122.2 L356.2 120.3 A20.0 20.0 0 0 1 363.8 120.3 L363.5 122.2 A18.1 18.1 0 0 0 356.5 122.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M356.2 120.3 L356.0 119.2 A21.2 21.2 0 0 1 364.0 119.2 L363.8 120.3 A20.0 20.0 0 0 0 356.2 120.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M356.0 119.2 L355.8 118.6 A21.8 21.8 0 0 1 364.2 118.6 L364.0 119.2 A21.2 21.2 0 0 0 356.0 119.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M362.4 128.2 L362.8 126.2 A14.0 14.0 0 0 1 367.7 128.3 L366.6 130.0 A12.0 12.0 0 0 0 362.4 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M362.8 126.2 L363.1 124.6 A15.7 15.7 0 0 1 368.7 126.9 L367.7 128.3 A14.0 14.0 0 0 0 362.8 126.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M363.1 124.6 L363.4 123.4 A16.9 16.9 0 0 1 369.3 125.9 L368.7 126.9 A15.7 15.7 0 0 0 363.1 124.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M363.4 123.4 L363.5 122.7 A17.6 17.6 0 0 1 369.7 125.3 L369.3 125.9 A16.9 16.9 0 0 0 363.4 123.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M363.5 122.7 L363.6 122.4 A18.0 18.0 0 0 1 369.9 125.0 L369.7 125.3 A17.6 17.6 0 0 0 363.5 122.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M366.7 130.1 L367.8 128.5 A13.9 13.9 0 0 1 371.5 132.2 L369.9 133.3 A12.0 12.0 0 0 0 366.7 130.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M367.8 128.5 L368.6 127.2 A15.5 15.5 0 0 1 372.8 131.4 L371.5 132.2 A13.9 13.9 0 0 0 367.8 128.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M368.6 127.2 L369.3 126.3 A16.6 16.6 0 0 1 373.7 130.7 L372.8 131.4 A15.5 15.5 0 0 0 368.6 127.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M369.3 126.3 L369.6 125.7 A17.3 17.3 0 0 1 374.3 130.4 L373.7 130.7 A16.6 16.6 0 0 0 369.3 126.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M369.6 125.7 L369.8 125.4 A17.6 17.6 0 0 1 374.6 130.2 L374.3 130.4 A17.3 17.3 0 0 0 369.6 125.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M370.0 133.4 L371.6 132.3 A13.9 13.9 0 0 1 373.6 137.2 L371.8 137.6 A12.0 12.0 0 0 0 370.0 133.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M371.6 132.3 L372.9 131.5 A15.5 15.5 0 0 1 375.1 136.9 L373.6 137.2 A13.9 13.9 0 0 0 371.6 132.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M372.9 131.5 L373.8 130.9 A16.6 16.6 0 0 1 376.2 136.7 L375.1 136.9 A15.5 15.5 0 0 0 372.9 131.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M373.8 130.9 L374.4 130.5 A17.2 17.2 0 0 1 376.9 136.6 L376.2 136.7 A16.6 16.6 0 0 0 373.8 130.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M374.4 130.5 L374.7 130.3 A17.6 17.6 0 0 1 377.2 136.5 L376.9 136.6 A17.2 17.2 0 0 0 374.4 130.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M371.8 137.7 L373.6 137.3 A13.9 13.9 0 0 1 373.6 142.7 L371.8 142.3 A12.0 12.0 0 0 0 371.8 137.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M373.6 137.3 L375.2 137.1 A15.5 15.5 0 0 1 375.2 142.9 L373.6 142.7 A13.9 13.9 0 0 0 373.6 137.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M375.2 137.1 L376.3 136.8 A16.6 16.6 0 0 1 376.3 143.2 L375.2 142.9 A15.5 15.5 0 0 0 375.2 137.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M376.3 136.8 L376.9 136.7 A17.2 17.2 0 0 1 376.9 143.3 L376.3 143.2 A16.6 16.6 0 0 0 376.3 136.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M376.9 136.7 L377.2 136.6 A17.6 17.6 0 0 1 377.2 143.4 L376.9 143.3 A17.2 17.2 0 0 0 376.9 136.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M371.8 142.4 L373.6 142.8 A13.9 13.9 0 0 1 371.6 147.7 L370.0 146.6 A12.0 12.0 0 0 0 371.8 142.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M373.6 142.8 L375.1 143.1 A15.5 15.5 0 0 1 372.9 148.5 L371.6 147.7 A13.9 13.9 0 0 0 373.6 142.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M375.1 143.1 L376.2 143.3 A16.6 16.6 0 0 1 373.8 149.1 L372.9 148.5 A15.5 15.5 0 0 0 375.1 143.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M376.2 143.3 L376.9 143.4 A17.2 17.2 0 0 1 374.4 149.5 L373.8 149.1 A16.6 16.6 0 0 0 376.2 143.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M376.9 143.4 L377.2 143.5 A17.6 17.6 0 0 1 374.6 149.7 L374.4 149.5 A17.2 17.2 0 0 0 376.9 143.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M369.9 146.7 L371.5 147.8 A13.9 13.9 0 0 1 367.8 151.5 L366.7 149.9 A12.0 12.0 0 0 0 369.9 146.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M371.5 147.8 L372.8 148.6 A15.5 15.5 0 0 1 368.6 152.8 L367.8 151.5 A13.9 13.9 0 0 0 371.5 147.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M372.8 148.6 L373.7 149.3 A16.6 16.6 0 0 1 369.3 153.7 L368.6 152.8 A15.5 15.5 0 0 0 372.8 148.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M373.7 149.3 L374.3 149.6 A17.2 17.2 0 0 1 369.6 154.3 L369.3 153.7 A16.6 16.6 0 0 0 373.7 149.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M374.3 149.6 L374.6 149.8 A17.6 17.6 0 0 1 369.8 154.6 L369.6 154.3 A17.2 17.2 0 0 0 374.3 149.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M366.6 150.0 L367.7 151.6 A13.9 13.9 0 0 1 362.8 153.6 L362.4 151.8 A12.0 12.0 0 0 0 366.6 150.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M367.7 151.6 L368.5 152.9 A15.5 15.5 0 0 1 363.1 155.1 L362.8 153.6 A13.9 13.9 0 0 0 367.7 151.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M368.5 152.9 L369.1 153.8 A16.6 16.6 0 0 1 363.3 156.2 L363.1 155.1 A15.5 15.5 0 0 0 368.5 152.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M369.1 153.8 L369.5 154.4 A17.2 17.2 0 0 1 363.4 156.9 L363.3 156.2 A16.6 16.6 0 0 0 369.1 153.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M369.5 154.4 L369.7 154.7 A17.6 17.6 0 0 1 363.5 157.2 L363.4 156.9 A17.2 17.2 0 0 0 369.5 154.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M362.3 151.8 L362.7 153.6 A13.9 13.9 0 0 1 357.3 153.6 L357.7 151.8 A12.0 12.0 0 0 0 362.3 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M362.7 153.6 L363.0 155.2 A15.5 15.5 0 0 1 357.0 155.2 L357.3 153.6 A13.9 13.9 0 0 0 362.7 153.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M363.0 155.2 L363.2 156.3 A16.6 16.6 0 0 1 356.8 156.3 L357.0 155.2 A15.5 15.5 0 0 0 363.0 155.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M363.2 156.3 L363.3 156.9 A17.3 17.3 0 0 1 356.7 156.9 L356.8 156.3 A16.6 16.6 0 0 0 363.2 156.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M363.3 156.9 L363.4 157.3 A17.6 17.6 0 0 1 356.6 157.3 L356.7 156.9 A17.3 17.3 0 0 0 363.3 156.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M357.6 151.8 L357.2 153.8 A14.1 14.1 0 0 1 352.2 151.8 L353.4 150.0 A12.0 12.0 0 0 0 357.6 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M357.2 153.8 L356.8 155.6 A15.9 15.9 0 0 1 351.2 153.2 L352.2 151.8 A14.1 14.1 0 0 0 357.2 153.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M356.8 155.6 L356.6 156.8 A17.1 17.1 0 0 1 350.6 154.3 L351.2 153.2 A15.9 15.9 0 0 0 356.8 155.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M356.6 156.8 L356.4 157.5 A17.9 17.9 0 0 1 350.1 154.9 L350.6 154.3 A17.1 17.1 0 0 0 356.6 156.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M356.4 157.5 L356.4 157.9 A18.2 18.2 0 0 1 349.9 155.2 L350.1 154.9 A17.9 17.9 0 0 0 356.4 157.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M353.3 149.9 L351.0 153.4 A16.1 16.1 0 0 1 346.6 149.0 L350.1 146.7 A12.0 12.0 0 0 0 353.3 149.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M351.0 153.4 L349.1 156.2 A19.5 19.5 0 0 1 343.8 150.9 L346.6 149.0 A16.1 16.1 0 0 0 351.0 153.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M349.1 156.2 L347.7 158.2 A21.9 21.9 0 0 1 341.8 152.3 L343.8 150.9 A19.5 19.5 0 0 0 349.1 156.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M347.7 158.2 L346.9 159.4 A23.4 23.4 0 0 1 340.6 153.1 L341.8 152.3 A21.9 21.9 0 0 0 347.7 158.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M346.9 159.4 L346.5 160.0 A24.1 24.1 0 0 1 340.0 153.5 L340.6 153.1 A23.4 23.4 0 0 0 346.9 159.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M350.0 146.6 L341.1 152.5 A22.7 22.7 0 0 1 337.7 144.5 L348.2 142.4 A12.0 12.0 0 0 0 350.0 146.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M341.1 152.5 L333.7 157.4 A31.5 31.5 0 0 1 329.1 146.3 L337.7 144.5 A22.7 22.7 0 0 0 341.1 152.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M333.7 157.4 L328.4 160.9 A37.9 37.9 0 0 1 322.9 147.5 L329.1 146.3 A31.5 31.5 0 0 0 333.7 157.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M328.4 160.9 L325.3 163.0 A41.6 41.6 0 0 1 319.2 148.3 L322.9 147.5 A37.9 37.9 0 0 0 328.4 160.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M325.3 163.0 L323.7 164.0 A43.5 43.5 0 0 1 317.3 148.7 L319.2 148.3 A41.6 41.6 0 0 0 325.3 163.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M348.2 142.3 L331.5 145.5 A29.0 29.0 0 0 1 331.5 134.5 L348.2 137.7 A12.0 12.0 0 0 0 348.2 142.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M331.5 145.5 L317.8 148.2 A43.0 43.0 0 0 1 317.8 131.8 L331.5 134.5 A29.0 29.0 0 0 0 331.5 145.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M317.8 148.2 L308.0 150.1 A53.0 53.0 0 0 1 308.0 129.9 L317.8 131.8 A43.0 43.0 0 0 0 317.8 148.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M308.0 150.1 L302.1 151.3 A59.0 59.0 0 0 1 302.1 128.7 L308.0 129.9 A53.0 53.0 0 0 0 308.0 150.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M302.1 151.3 L299.1 151.8 A62.0 62.0 0 0 1 299.1 128.2 L302.1 128.7 A59.0 59.0 0 0 0 302.1 151.3 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M348.2 137.6 L332.4 134.4 A28.2 28.2 0 0 1 336.5 124.4 L350.0 133.4 A12.0 12.0 0 0 0 348.2 137.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M332.4 134.4 L319.3 131.7 A41.5 41.5 0 0 1 325.4 117.1 L336.5 124.4 A28.2 28.2 0 0 0 332.4 134.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M319.3 131.7 L310.0 129.8 A51.0 51.0 0 0 1 317.5 111.8 L325.4 117.1 A41.5 41.5 0 0 0 319.3 131.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M310.0 129.8 L304.4 128.7 A56.7 56.7 0 0 1 312.7 108.7 L317.5 111.8 A51.0 51.0 0 0 0 310.0 129.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M304.4 128.7 L301.6 128.1 A59.6 59.6 0 0 1 310.3 107.1 L312.7 108.7 A56.7 56.7 0 0 0 304.4 128.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M350.1 133.3 L339.3 126.0 A24.9 24.9 0 0 1 346.0 119.3 L353.3 130.1 A12.0 12.0 0 0 0 350.1 133.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M339.3 126.0 L330.5 120.1 A35.6 35.6 0 0 1 340.1 110.5 L346.0 119.3 A24.9 24.9 0 0 0 339.3 126.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M330.5 120.1 L324.2 115.8 A43.2 43.2 0 0 1 335.8 104.2 L340.1 110.5 A35.6 35.6 0 0 0 330.5 120.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M324.2 115.8 L320.4 113.3 A47.8 47.8 0 0 1 333.3 100.4 L335.8 104.2 A43.2 43.2 0 0 0 324.2 115.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M320.4 113.3 L318.5 112.0 A50.1 50.1 0 0 1 332.0 98.5 L333.3 100.4 A47.8 47.8 0 0 0 320.4 113.3 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M353.4 130.0 L349.1 123.5 A19.7 19.7 0 0 1 356.1 120.7 L357.6 128.2 A12.0 12.0 0 0 0 353.4 130.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M349.1 123.5 L345.6 118.2 A26.1 26.1 0 0 1 354.8 114.4 L356.1 120.7 A19.7 19.7 0 0 0 349.1 123.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M345.6 118.2 L343.1 114.4 A30.6 30.6 0 0 1 353.9 110.0 L354.8 114.4 A26.1 26.1 0 0 0 345.6 118.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M343.1 114.4 L341.6 112.2 A33.4 33.4 0 0 1 353.3 107.3 L353.9 110.0 A30.6 30.6 0 0 0 343.1 114.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M341.6 112.2 L340.8 111.0 A34.7 34.7 0 0 1 353.1 106.0 L353.3 107.3 A33.4 33.4 0 0 0 341.6 112.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="360" y="68" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="435" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="360" y="218" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="285" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <circle cx="590" cy="140" r="62.0" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M587.7 128.2 L587.2 125.6 A14.7 14.7 0 0 1 592.8 125.6 L592.3 128.2 A12.0 12.0 0 0 0 587.7 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M587.2 125.6 L586.8 123.5 A16.9 16.9 0 0 1 593.2 123.5 L592.8 125.6 A14.7 14.7 0 0 0 587.2 125.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M586.8 123.5 L586.5 121.9 A18.4 18.4 0 0 1 593.5 121.9 L593.2 123.5 A16.9 16.9 0 0 0 586.8 123.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M586.5 121.9 L586.3 121.0 A19.4 19.4 0 0 1 593.7 121.0 L593.5 121.9 A18.4 18.4 0 0 0 586.5 121.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M586.3 121.0 L586.2 120.5 A19.8 19.8 0 0 1 593.8 120.5 L593.7 121.0 A19.4 19.4 0 0 0 586.3 121.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M592.4 128.2 L592.8 126.3 A14.0 14.0 0 0 1 597.7 128.3 L596.6 130.0 A12.0 12.0 0 0 0 592.4 128.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M592.8 126.3 L593.1 124.7 A15.6 15.6 0 0 1 598.6 127.0 L597.7 128.3 A14.0 14.0 0 0 0 592.8 126.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M593.1 124.7 L593.3 123.6 A16.8 16.8 0 0 1 599.3 126.0 L598.6 127.0 A15.6 15.6 0 0 0 593.1 124.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M593.3 123.6 L593.5 122.9 A17.5 17.5 0 0 1 599.6 125.4 L599.3 126.0 A16.8 16.8 0 0 0 593.3 123.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M593.5 122.9 L593.6 122.5 A17.8 17.8 0 0 1 599.8 125.1 L599.6 125.4 A17.5 17.5 0 0 0 593.5 122.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M596.7 130.1 L597.8 128.5 A13.9 13.9 0 0 1 601.5 132.2 L599.9 133.3 A12.0 12.0 0 0 0 596.7 130.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M597.8 128.5 L598.7 127.2 A15.5 15.5 0 0 1 602.8 131.3 L601.5 132.2 A13.9 13.9 0 0 0 597.8 128.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M598.7 127.2 L599.3 126.2 A16.6 16.6 0 0 1 603.8 130.7 L602.8 131.3 A15.5 15.5 0 0 0 598.7 127.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M599.3 126.2 L599.7 125.7 A17.3 17.3 0 0 1 604.3 130.3 L603.8 130.7 A16.6 16.6 0 0 0 599.3 126.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M599.7 125.7 L599.8 125.4 A17.6 17.6 0 0 1 604.6 130.2 L604.3 130.3 A17.3 17.3 0 0 0 599.7 125.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M600.0 133.4 L601.6 132.3 A13.9 13.9 0 0 1 603.6 137.2 L601.8 137.6 A12.0 12.0 0 0 0 600.0 133.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M601.6 132.3 L602.9 131.5 A15.5 15.5 0 0 1 605.2 136.9 L603.6 137.2 A13.9 13.9 0 0 0 601.6 132.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M602.9 131.5 L603.8 130.8 A16.6 16.6 0 0 1 606.3 136.7 L605.2 136.9 A15.5 15.5 0 0 0 602.9 131.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M603.8 130.8 L604.4 130.5 A17.3 17.3 0 0 1 606.9 136.6 L606.3 136.7 A16.6 16.6 0 0 0 603.8 130.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M604.4 130.5 L604.7 130.3 A17.6 17.6 0 0 1 607.2 136.5 L606.9 136.6 A17.3 17.3 0 0 0 604.4 130.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M601.8 137.7 L603.6 137.3 A13.9 13.9 0 0 1 603.6 142.7 L601.8 142.3 A12.0 12.0 0 0 0 601.8 137.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M603.6 137.3 L605.2 137.0 A15.5 15.5 0 0 1 605.2 143.0 L603.6 142.7 A13.9 13.9 0 0 0 603.6 137.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M605.2 137.0 L606.3 136.8 A16.6 16.6 0 0 1 606.3 143.2 L605.2 143.0 A15.5 15.5 0 0 0 605.2 137.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M606.3 136.8 L606.9 136.7 A17.3 17.3 0 0 1 606.9 143.3 L606.3 143.2 A16.6 16.6 0 0 0 606.3 136.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M606.9 136.7 L607.3 136.6 A17.6 17.6 0 0 1 607.3 143.4 L606.9 143.3 A17.3 17.3 0 0 0 606.9 136.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M601.8 142.4 L603.6 142.8 A13.9 13.9 0 0 1 601.6 147.7 L600.0 146.6 A12.0 12.0 0 0 0 601.8 142.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M603.6 142.8 L605.2 143.1 A15.5 15.5 0 0 1 602.9 148.5 L601.6 147.7 A13.9 13.9 0 0 0 603.6 142.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M605.2 143.1 L606.3 143.3 A16.6 16.6 0 0 1 603.8 149.2 L602.9 148.5 A15.5 15.5 0 0 0 605.2 143.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M606.3 143.3 L606.9 143.4 A17.3 17.3 0 0 1 604.4 149.5 L603.8 149.2 A16.6 16.6 0 0 0 606.3 143.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M606.9 143.4 L607.3 143.5 A17.6 17.6 0 0 1 604.7 149.7 L604.4 149.5 A17.3 17.3 0 0 0 606.9 143.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M599.9 146.7 L601.6 147.8 A14.0 14.0 0 0 1 597.8 151.6 L596.7 149.9 A12.0 12.0 0 0 0 599.9 146.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M601.6 147.8 L603.0 148.7 A15.6 15.6 0 0 1 598.7 153.0 L597.8 151.6 A14.0 14.0 0 0 0 601.6 147.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M603.0 148.7 L603.9 149.4 A16.8 16.8 0 0 1 599.4 153.9 L598.7 153.0 A15.6 15.6 0 0 0 603.0 148.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M603.9 149.4 L604.5 149.8 A17.5 17.5 0 0 1 599.8 154.5 L599.4 153.9 A16.8 16.8 0 0 0 603.9 149.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M604.5 149.8 L604.8 150.0 A17.8 17.8 0 0 1 600.0 154.8 L599.8 154.5 A17.5 17.5 0 0 0 604.5 149.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M596.6 150.0 L598.2 152.4 A14.8 14.8 0 0 1 593.0 154.5 L592.4 151.8 A12.0 12.0 0 0 0 596.6 150.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M598.2 152.4 L599.5 154.3 A17.2 17.2 0 0 1 593.4 156.8 L593.0 154.5 A14.8 14.8 0 0 0 598.2 152.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M599.5 154.3 L600.4 155.7 A18.8 18.8 0 0 1 593.8 158.5 L593.4 156.8 A17.2 17.2 0 0 0 599.5 154.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M600.4 155.7 L600.9 156.5 A19.8 19.8 0 0 1 594.0 159.4 L593.8 158.5 A18.8 18.8 0 0 0 600.4 155.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M600.9 156.5 L601.2 157.0 A20.3 20.3 0 0 1 594.1 159.9 L594.0 159.4 A19.8 19.8 0 0 0 600.9 156.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M592.3 151.8 L593.5 158.2 A18.6 18.6 0 0 1 586.5 158.2 L587.7 151.8 A12.0 12.0 0 0 0 592.3 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M593.5 158.2 L594.6 163.5 A24.0 24.0 0 0 1 585.4 163.5 L586.5 158.2 A18.6 18.6 0 0 0 593.5 158.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M594.6 163.5 L595.3 167.3 A27.9 27.9 0 0 1 584.7 167.3 L585.4 163.5 A24.0 24.0 0 0 0 594.6 163.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M595.3 167.3 L595.8 169.6 A30.2 30.2 0 0 1 584.2 169.6 L584.7 167.3 A27.9 27.9 0 0 0 595.3 167.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M595.8 169.6 L596.0 170.8 A31.3 31.3 0 0 1 584.0 170.8 L584.2 169.6 A30.2 30.2 0 0 0 595.8 169.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M587.6 151.8 L584.9 164.9 A25.4 25.4 0 0 1 576.0 161.2 L583.4 150.0 A12.0 12.0 0 0 0 587.6 151.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M584.9 164.9 L582.7 175.7 A36.5 36.5 0 0 1 569.9 170.4 L576.0 161.2 A25.4 25.4 0 0 0 584.9 164.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M582.7 175.7 L581.2 183.5 A44.4 44.4 0 0 1 565.5 177.0 L569.9 170.4 A36.5 36.5 0 0 0 582.7 175.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M581.2 183.5 L580.2 188.1 A49.1 49.1 0 0 1 562.9 180.9 L565.5 177.0 A44.4 44.4 0 0 0 581.2 183.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M580.2 188.1 L579.7 190.4 A51.5 51.5 0 0 1 561.6 182.9 L562.9 180.9 A49.1 49.1 0 0 0 580.2 188.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M583.3 149.9 L573.8 164.0 A29.0 29.0 0 0 1 566.0 156.2 L580.1 146.7 A12.0 12.0 0 0 0 583.3 149.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M573.8 164.0 L566.0 175.6 A43.0 43.0 0 0 1 554.4 164.0 L566.0 156.2 A29.0 29.0 0 0 0 573.8 164.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M566.0 175.6 L560.4 183.9 A53.0 53.0 0 0 1 546.1 169.6 L554.4 164.0 A43.0 43.0 0 0 0 566.0 175.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M560.4 183.9 L557.0 188.9 A59.0 59.0 0 0 1 541.1 173.0 L546.1 169.6 A53.0 53.0 0 0 0 560.4 183.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M557.0 188.9 L555.3 191.4 A62.0 62.0 0 0 1 538.6 174.7 L541.1 173.0 A59.0 59.0 0 0 0 557.0 188.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M580.0 146.6 L567.0 155.2 A27.6 27.6 0 0 1 562.9 145.5 L578.2 142.4 A12.0 12.0 0 0 0 580.0 146.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M567.0 155.2 L556.3 162.3 A40.5 40.5 0 0 1 550.3 148.1 L562.9 145.5 A27.6 27.6 0 0 0 567.0 155.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M556.3 162.3 L548.6 167.4 A49.7 49.7 0 0 1 541.3 149.9 L550.3 148.1 A40.5 40.5 0 0 0 556.3 162.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M548.6 167.4 L544.0 170.4 A55.2 55.2 0 0 1 535.9 151.0 L541.3 149.9 A49.7 49.7 0 0 0 548.6 167.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M544.0 170.4 L541.7 172.0 A57.9 57.9 0 0 1 533.2 151.5 L535.9 151.0 A55.2 55.2 0 0 0 544.0 170.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M578.2 142.3 L564.3 145.0 A26.2 26.2 0 0 1 564.3 135.0 L578.2 137.7 A12.0 12.0 0 0 0 578.2 142.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M564.3 145.0 L552.9 147.2 A37.8 37.8 0 0 1 552.9 132.8 L564.3 135.0 A26.2 26.2 0 0 0 564.3 145.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M552.9 147.2 L544.7 148.8 A46.2 46.2 0 0 1 544.7 131.2 L552.9 132.8 A37.8 37.8 0 0 0 552.9 147.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M544.7 148.8 L539.8 149.8 A51.2 51.2 0 0 1 539.8 130.2 L544.7 131.2 A46.2 46.2 0 0 0 544.7 148.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M539.8 149.8 L537.3 150.2 A53.7 53.7 0 0 1 537.3 129.8 L539.8 130.2 A51.2 51.2 0 0 0 539.8 149.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M578.2 137.6 L567.3 135.4 A23.2 23.2 0 0 1 570.7 127.2 L580.0 133.4 A12.0 12.0 0 0 0 578.2 137.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M567.3 135.4 L558.2 133.5 A32.4 32.4 0 0 1 563.0 122.1 L570.7 127.2 A23.2 23.2 0 0 0 567.3 135.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M558.2 133.5 L551.8 132.2 A39.0 39.0 0 0 1 557.5 118.5 L563.0 122.1 A32.4 32.4 0 0 0 558.2 133.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M551.8 132.2 L547.9 131.4 A43.0 43.0 0 0 1 554.2 116.3 L557.5 118.5 A39.0 39.0 0 0 0 551.8 132.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M547.9 131.4 L546.0 131.0 A44.9 44.9 0 0 1 552.5 115.2 L554.2 116.3 A43.0 43.0 0 0 0 547.9 131.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M580.1 133.3 L573.3 128.7 A20.1 20.1 0 0 1 578.7 123.3 L583.3 130.1 A12.0 12.0 0 0 0 580.1 133.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M573.3 128.7 L567.8 125.0 A26.8 26.8 0 0 1 575.0 117.8 L578.7 123.3 A20.1 20.1 0 0 0 573.3 128.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M567.8 125.0 L563.8 122.3 A31.6 31.6 0 0 1 572.3 113.8 L575.0 117.8 A26.8 26.8 0 0 0 567.8 125.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M563.8 122.3 L561.4 120.7 A34.5 34.5 0 0 1 570.7 111.4 L572.3 113.8 A31.6 31.6 0 0 0 563.8 122.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M561.4 120.7 L560.2 119.9 A35.9 35.9 0 0 1 569.9 110.2 L570.7 111.4 A34.5 34.5 0 0 0 561.4 120.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M583.4 130.0 L580.6 125.8 A17.0 17.0 0 0 1 586.6 123.3 L587.6 128.2 A12.0 12.0 0 0 0 583.4 130.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M580.6 125.8 L578.3 122.4 A21.1 21.1 0 0 1 585.8 119.3 L586.6 123.3 A17.0 17.0 0 0 0 580.6 125.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M578.3 122.4 L576.7 119.9 A24.1 24.1 0 0 1 585.2 116.4 L585.8 119.3 A21.1 21.1 0 0 0 578.3 122.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M576.7 119.9 L575.7 118.4 A25.9 25.9 0 0 1 584.8 114.7 L585.2 116.4 A24.1 24.1 0 0 0 576.7 119.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M575.7 118.4 L575.2 117.7 A26.8 26.8 0 0 1 584.7 113.8 L584.8 114.7 A25.9 25.9 0 0 0 575.7 118.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="590" y="68" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="665" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="590" y="218" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="515" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <text x="130" y="240" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)" text-anchor="middle">JANUARY</text>
+  <text x="130" y="254" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)" text-anchor="middle">south-west dominates</text>
+  <text x="360" y="240" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)" text-anchor="middle">JULY</text>
+  <text x="360" y="254" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)" text-anchor="middle">west and north-west</text>
+  <text x="590" y="240" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)" text-anchor="middle">ALL YEAR</text>
+  <text x="590" y="254" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)" text-anchor="middle">a blend of both</text>
+  <text x="20" y="272" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-no)">The annual rose is an average of twelve climates and need not resemble any of them.</text>
+  <text x="20" y="288" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9.5" fill="var(--wr-ink3)">Schematic &#8212; illustrative shapes, not read from any one EPW file. Run the exercise for the real ones.</text>
+</svg>
+<figcaption>Three roses, one place. Each month is its own climate &mdash; the annual shape is an average that need match neither.</figcaption>
+        </figure>
+        <ol class="wr-steps">
+          <li>Load the <b>London</b> preset.</li>
+          <li>Set the <b>Month</b> slider to <code>January</code> and note which direction has the
+            tallest stack.</li>
+          <li>Move it to <code>July</code> and note the tallest direction again.</li>
+          <li>Switch back to <code>All Year</code> and compare both months against the annual
+            shape.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> The annual rose is an average of twelve different
+          climates, and no single month necessarily resembles it. A fa&ccedil;ade opened for summer
+          ventilation on the annual prevailing direction may face entirely the wrong way for
+          infiltration and heat loss in January. Read the month you actually care about, not just
+          &ldquo;All Year&rdquo;.</p>
+      </div>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 02</span>
+        <h3>A rose cannot tell you where a building is sheltered</h3>
+        <figure class="wr-fig">
+<svg viewBox="0 0 720 336" role="img" aria-label="The same wind data drawn twice. Over a small footprint the rose is drawn small; over a footprint twice as wide, every part of the rose is drawn twice as large. The shape and the percentages are identical in both. Only the drawn size follows the building.">
+  <text x="20" y="22" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" fill="var(--wr-ink)">ONE WIND FILE &#183; TWO FOOTPRINTS &#183; ONE ROSE</text>
+  <text x="20" y="36" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)">Same file, same month, same 16 &#215; 5 table behind both drawings.</text>
+  <rect x="156" y="144" width="24" height="24" fill="var(--wr-surface2)" stroke="var(--wr-ink3)" stroke-width="1"/>
+  <circle cx="168" cy="156" r="52.0" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M164.6 138.3 L164.4 137.3 A19.0 19.0 0 0 1 171.6 137.3 L171.4 138.3 A18.0 18.0 0 0 0 164.6 138.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M164.4 137.3 L164.2 136.5 A19.9 19.9 0 0 1 171.8 136.5 L171.6 137.3 A19.0 19.0 0 0 0 164.4 137.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M164.2 136.5 L164.1 135.9 A20.5 20.5 0 0 1 171.9 135.9 L171.8 136.5 A19.9 19.9 0 0 0 164.2 136.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M164.1 135.9 L164.0 135.6 A20.8 20.8 0 0 1 172.0 135.6 L171.9 135.9 A20.5 20.5 0 0 0 164.1 135.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M164.0 135.6 L164.0 135.4 A21.0 21.0 0 0 1 172.0 135.4 L172.0 135.6 A20.8 20.8 0 0 0 164.0 135.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M171.6 138.4 L171.8 137.3 A19.1 19.1 0 0 1 178.5 140.1 L177.9 141.0 A18.0 18.0 0 0 0 171.6 138.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M171.8 137.3 L172.0 136.5 A19.9 19.9 0 0 1 179.0 139.4 L178.5 140.1 A19.1 19.1 0 0 0 171.8 137.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M172.0 136.5 L172.1 135.9 A20.5 20.5 0 0 1 179.3 138.9 L179.0 139.4 A19.9 19.9 0 0 0 172.0 136.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M172.1 135.9 L172.2 135.5 A20.9 20.9 0 0 1 179.5 138.6 L179.3 138.9 A20.5 20.5 0 0 0 172.1 135.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M172.2 135.5 L172.2 135.3 A21.1 21.1 0 0 1 179.7 138.4 L179.5 138.6 A20.9 20.9 0 0 0 172.2 135.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M178.1 141.1 L178.9 139.9 A19.4 19.4 0 0 1 184.1 145.1 L182.9 145.9 A18.0 18.0 0 0 0 178.1 141.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M178.9 139.9 L179.5 138.9 A20.6 20.6 0 0 1 185.1 144.5 L184.1 145.1 A19.4 19.4 0 0 0 178.9 139.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M179.5 138.9 L180.0 138.2 A21.4 21.4 0 0 1 185.8 144.0 L185.1 144.5 A20.6 20.6 0 0 0 179.5 138.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M180.0 138.2 L180.3 137.8 A21.9 21.9 0 0 1 186.2 143.7 L185.8 144.0 A21.4 21.4 0 0 0 180.0 138.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M180.3 137.8 L180.4 137.6 A22.2 22.2 0 0 1 186.4 143.6 L186.2 143.7 A21.9 21.9 0 0 0 180.3 137.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M183.0 146.1 L185.2 144.6 A20.6 20.6 0 0 1 188.2 151.9 L185.6 152.4 A18.0 18.0 0 0 0 183.0 146.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M185.2 144.6 L187.0 143.4 A22.8 22.8 0 0 1 190.3 151.5 L188.2 151.9 A20.6 20.6 0 0 0 185.2 144.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M187.0 143.4 L188.3 142.6 A24.3 24.3 0 0 1 191.8 151.1 L190.3 151.5 A22.8 22.8 0 0 0 187.0 143.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M188.3 142.6 L189.1 142.1 A25.3 25.3 0 0 1 192.7 151.0 L191.8 151.1 A24.3 24.3 0 0 0 188.3 142.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M189.1 142.1 L189.4 141.8 A25.7 25.7 0 0 1 193.2 150.9 L192.7 151.0 A25.3 25.3 0 0 0 189.1 142.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M185.7 152.6 L189.2 151.9 A21.6 21.6 0 0 1 189.2 160.1 L185.7 159.4 A18.0 18.0 0 0 0 185.7 152.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M189.2 151.9 L192.0 151.3 A24.5 24.5 0 0 1 192.0 160.7 L189.2 160.1 A21.6 21.6 0 0 0 189.2 151.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M192.0 151.3 L194.1 150.9 A26.6 26.6 0 0 1 194.1 161.1 L192.0 160.7 A24.5 24.5 0 0 0 192.0 151.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M194.1 150.9 L195.3 150.7 A27.8 27.8 0 0 1 195.3 161.3 L194.1 161.1 A26.6 26.6 0 0 0 194.1 150.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M195.3 150.7 L195.9 150.6 A28.4 28.4 0 0 1 195.9 161.4 L195.3 161.3 A27.8 27.8 0 0 0 195.3 150.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M185.6 159.6 L188.2 160.1 A20.6 20.6 0 0 1 185.2 167.4 L183.0 165.9 A18.0 18.0 0 0 0 185.6 159.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M188.2 160.1 L190.3 160.5 A22.8 22.8 0 0 1 187.0 168.6 L185.2 167.4 A20.6 20.6 0 0 0 188.2 160.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M190.3 160.5 L191.8 160.9 A24.3 24.3 0 0 1 188.3 169.4 L187.0 168.6 A22.8 22.8 0 0 0 190.3 160.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M191.8 160.9 L192.8 161.0 A25.3 25.3 0 0 1 189.1 169.9 L188.3 169.4 A24.3 24.3 0 0 0 191.8 160.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M192.8 161.0 L193.2 161.1 A25.7 25.7 0 0 1 189.4 170.2 L189.1 169.9 A25.3 25.3 0 0 0 192.8 161.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M182.9 166.1 L184.1 166.9 A19.4 19.4 0 0 1 178.9 172.1 L178.1 170.9 A18.0 18.0 0 0 0 182.9 166.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M184.1 166.9 L185.1 167.5 A20.6 20.6 0 0 1 179.5 173.1 L178.9 172.1 A19.4 19.4 0 0 0 184.1 166.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M185.1 167.5 L185.8 168.0 A21.5 21.5 0 0 1 180.0 173.8 L179.5 173.1 A20.6 20.6 0 0 0 185.1 167.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M185.8 168.0 L186.2 168.3 A22.0 22.0 0 0 1 180.3 174.2 L180.0 173.8 A21.5 21.5 0 0 0 185.8 168.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M186.2 168.3 L186.4 168.4 A22.2 22.2 0 0 1 180.4 174.4 L180.3 174.2 A22.0 22.0 0 0 0 186.2 168.3 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M177.9 171.0 L178.6 172.0 A19.2 19.2 0 0 1 171.8 174.8 L171.6 173.6 A18.0 18.0 0 0 0 177.9 171.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M178.6 172.0 L179.2 172.9 A20.2 20.2 0 0 1 172.0 175.8 L171.8 174.8 A19.2 19.2 0 0 0 178.6 172.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M179.2 172.9 L179.6 173.5 A20.9 20.9 0 0 1 172.2 176.5 L172.0 175.8 A20.2 20.2 0 0 0 179.2 172.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M179.6 173.5 L179.8 173.8 A21.4 21.4 0 0 1 172.3 176.9 L172.2 176.5 A20.9 20.9 0 0 0 179.6 173.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M179.8 173.8 L179.9 174.0 A21.6 21.6 0 0 1 172.3 177.2 L172.3 176.9 A21.4 21.4 0 0 0 179.8 173.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M171.4 173.7 L171.9 176.2 A20.6 20.6 0 0 1 164.1 176.2 L164.6 173.7 A18.0 18.0 0 0 0 171.4 173.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M171.9 176.2 L172.3 178.3 A22.7 22.7 0 0 1 163.7 178.3 L164.1 176.2 A20.6 20.6 0 0 0 171.9 176.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M172.3 178.3 L172.6 179.8 A24.2 24.2 0 0 1 163.4 179.8 L163.7 178.3 A22.7 22.7 0 0 0 172.3 178.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M172.6 179.8 L172.8 180.7 A25.1 25.1 0 0 1 163.2 180.7 L163.4 179.8 A24.2 24.2 0 0 0 172.6 179.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M172.8 180.7 L172.9 181.1 A25.6 25.6 0 0 1 163.1 181.1 L163.2 180.7 A25.1 25.1 0 0 0 172.8 180.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M164.4 173.6 L163.0 180.7 A25.2 25.2 0 0 1 154.1 177.0 L158.1 171.0 A18.0 18.0 0 0 0 164.4 173.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M163.0 180.7 L161.8 186.6 A31.2 31.2 0 0 1 150.8 182.0 L154.1 177.0 A25.2 25.2 0 0 0 163.0 180.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M161.8 186.6 L160.9 190.7 A35.4 35.4 0 0 1 148.4 185.5 L150.8 182.0 A31.2 31.2 0 0 0 161.8 186.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M160.9 190.7 L160.4 193.2 A38.0 38.0 0 0 1 147.0 187.7 L148.4 185.5 A35.4 35.4 0 0 0 160.9 190.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M160.4 193.2 L160.2 194.5 A39.3 39.3 0 0 1 146.3 188.7 L147.0 187.7 A38.0 38.0 0 0 0 160.4 193.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M157.9 170.9 L151.5 180.5 A29.6 29.6 0 0 1 143.5 172.5 L153.1 166.1 A18.0 18.0 0 0 0 157.9 170.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M151.5 180.5 L146.1 188.4 A39.1 39.1 0 0 1 135.6 177.9 L143.5 172.5 A29.6 29.6 0 0 0 151.5 180.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M146.1 188.4 L142.3 194.0 A45.9 45.9 0 0 1 130.0 181.7 L135.6 177.9 A39.1 39.1 0 0 0 146.1 188.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M142.3 194.0 L140.1 197.4 A50.0 50.0 0 0 1 126.6 183.9 L130.0 181.7 A45.9 45.9 0 0 0 142.3 194.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M140.1 197.4 L138.9 199.1 A52.0 52.0 0 0 1 124.9 185.1 L126.6 183.9 A50.0 50.0 0 0 0 140.1 197.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M153.0 165.9 L144.1 171.8 A28.7 28.7 0 0 1 139.9 161.7 L150.4 159.6 A18.0 18.0 0 0 0 153.0 165.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M144.1 171.8 L136.8 176.7 A37.5 37.5 0 0 1 131.3 163.5 L139.9 161.7 A28.7 28.7 0 0 0 144.1 171.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M136.8 176.7 L131.5 180.1 A43.7 43.7 0 0 1 125.1 164.7 L131.3 163.5 A37.5 37.5 0 0 0 136.8 176.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M131.5 180.1 L128.4 182.2 A47.5 47.5 0 0 1 121.4 165.5 L125.1 164.7 A43.7 43.7 0 0 0 131.5 180.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M128.4 182.2 L126.8 183.3 A49.4 49.4 0 0 1 119.6 165.8 L121.4 165.5 A47.5 47.5 0 0 0 128.4 182.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M150.3 159.4 L142.3 161.0 A26.2 26.2 0 0 1 142.3 151.0 L150.3 152.6 A18.0 18.0 0 0 0 150.3 159.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M142.3 161.0 L135.7 162.3 A32.9 32.9 0 0 1 135.7 149.7 L142.3 151.0 A26.2 26.2 0 0 0 142.3 161.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M135.7 162.3 L131.0 163.2 A37.7 37.7 0 0 1 131.0 148.8 L135.7 149.7 A32.9 32.9 0 0 0 135.7 162.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M131.0 163.2 L128.2 163.7 A40.6 40.6 0 0 1 128.2 148.3 L131.0 148.8 A37.7 37.7 0 0 0 131.0 163.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M128.2 163.7 L126.8 164.0 A42.0 42.0 0 0 1 126.8 148.0 L128.2 148.3 A40.6 40.6 0 0 0 128.2 163.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M150.4 152.4 L145.7 151.5 A22.7 22.7 0 0 1 149.1 143.5 L153.0 146.1 A18.0 18.0 0 0 0 150.4 152.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M145.7 151.5 L141.9 150.7 A26.6 26.6 0 0 1 145.8 141.3 L149.1 143.5 A22.7 22.7 0 0 0 145.7 151.5 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M141.9 150.7 L139.2 150.1 A29.4 29.4 0 0 1 143.5 139.8 L145.8 141.3 A26.6 26.6 0 0 0 141.9 150.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M139.2 150.1 L137.6 149.8 A31.0 31.0 0 0 1 142.1 138.9 L143.5 139.8 A29.4 29.4 0 0 0 139.2 150.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M137.6 149.8 L136.8 149.6 A31.9 31.9 0 0 1 141.4 138.4 L142.1 138.9 A31.0 31.0 0 0 0 137.6 149.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M153.1 145.9 L151.5 144.9 A19.9 19.9 0 0 1 156.9 139.5 L157.9 141.1 A18.0 18.0 0 0 0 153.1 145.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M151.5 144.9 L150.2 144.0 A21.5 21.5 0 0 1 156.0 138.2 L156.9 139.5 A19.9 19.9 0 0 0 151.5 144.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M150.2 144.0 L149.2 143.3 A22.6 22.6 0 0 1 155.3 137.2 L156.0 138.2 A21.5 21.5 0 0 0 150.2 144.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M149.2 143.3 L148.7 143.0 A23.3 23.3 0 0 1 155.0 136.7 L155.3 137.2 A22.6 22.6 0 0 0 149.2 143.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M148.7 143.0 L148.4 142.8 A23.7 23.7 0 0 1 154.8 136.4 L155.0 136.7 A23.3 23.3 0 0 0 148.7 143.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M158.1 141.0 L157.5 140.1 A19.1 19.1 0 0 1 164.2 137.3 L164.4 138.4 A18.0 18.0 0 0 0 158.1 141.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M157.5 140.1 L156.9 139.3 A20.0 20.0 0 0 1 164.0 136.4 L164.2 137.3 A19.1 19.1 0 0 0 157.5 140.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M156.9 139.3 L156.6 138.8 A20.7 20.7 0 0 1 163.9 135.7 L164.0 136.4 A20.0 20.0 0 0 0 156.9 139.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M156.6 138.8 L156.4 138.4 A21.1 21.1 0 0 1 163.8 135.4 L163.9 135.7 A20.7 20.7 0 0 0 156.6 138.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M156.4 138.4 L156.3 138.3 A21.3 21.3 0 0 1 163.8 135.2 L163.8 135.4 A21.1 21.1 0 0 0 156.4 138.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="168" y="94" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="233" y="159" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="168" y="224" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="103" y="159" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <rect x="488" y="132" width="48" height="48" fill="var(--wr-surface2)" stroke="var(--wr-ink3)" stroke-width="1"/>
+  <circle cx="512" cy="156" r="104.0" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M505.1 120.7 L504.7 118.7 A38.0 38.0 0 0 1 519.3 118.7 L518.9 120.7 A36.0 36.0 0 0 0 505.1 120.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M504.7 118.7 L504.4 117.0 A39.7 39.7 0 0 1 519.6 117.0 L519.3 118.7 A38.0 38.0 0 0 0 504.7 118.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M504.4 117.0 L504.2 115.8 A40.9 40.9 0 0 1 519.8 115.8 L519.6 117.0 A39.7 39.7 0 0 0 504.4 117.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M504.2 115.8 L504.1 115.1 A41.6 41.6 0 0 1 519.9 115.1 L519.8 115.8 A40.9 40.9 0 0 0 504.2 115.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M504.1 115.1 L504.0 114.8 A42.0 42.0 0 0 1 520.0 114.8 L519.9 115.1 A41.6 41.6 0 0 0 504.1 115.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M519.2 120.7 L519.6 118.7 A38.1 38.1 0 0 1 533.0 124.2 L531.9 126.0 A36.0 36.0 0 0 0 519.2 120.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M519.6 118.7 L519.9 116.9 A39.9 39.9 0 0 1 534.0 122.8 L533.0 124.2 A38.1 38.1 0 0 0 519.6 118.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M519.9 116.9 L520.2 115.7 A41.1 41.1 0 0 1 534.7 121.7 L534.0 122.8 A39.9 39.9 0 0 0 519.9 116.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M520.2 115.7 L520.3 115.0 A41.8 41.8 0 0 1 535.1 121.1 L534.7 121.7 A41.1 41.1 0 0 0 520.2 115.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M520.3 115.0 L520.4 114.6 A42.2 42.2 0 0 1 535.3 120.8 L535.1 121.1 A41.8 41.8 0 0 0 520.3 115.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M532.1 126.2 L533.7 123.8 A38.9 38.9 0 0 1 544.2 134.3 L541.8 135.9 A36.0 36.0 0 0 0 532.1 126.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M533.7 123.8 L535.0 121.8 A41.2 41.2 0 0 1 546.2 133.0 L544.2 134.3 A38.9 38.9 0 0 0 533.7 123.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M535.0 121.8 L536.0 120.5 A42.9 42.9 0 0 1 547.5 132.0 L546.2 133.0 A41.2 41.2 0 0 0 535.0 121.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M536.0 120.5 L536.5 119.6 A43.9 43.9 0 0 1 548.4 131.5 L547.5 132.0 A42.9 42.9 0 0 0 536.0 120.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M536.5 119.6 L536.8 119.2 A44.4 44.4 0 0 1 548.8 131.2 L548.4 131.5 A43.9 43.9 0 0 0 536.5 119.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M542.0 136.1 L546.4 133.2 A41.2 41.2 0 0 1 552.4 147.8 L547.3 148.8 A36.0 36.0 0 0 0 542.0 136.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M546.4 133.2 L550.0 130.8 A45.6 45.6 0 0 1 556.7 146.9 L552.4 147.8 A41.2 41.2 0 0 0 546.4 133.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M550.0 130.8 L552.6 129.1 A48.7 48.7 0 0 1 559.7 146.3 L556.7 146.9 A45.6 45.6 0 0 0 550.0 130.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M552.6 129.1 L554.1 128.1 A50.5 50.5 0 0 1 561.5 145.9 L559.7 146.3 A48.7 48.7 0 0 0 552.6 129.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M554.1 128.1 L554.9 127.6 A51.4 51.4 0 0 1 562.4 145.7 L561.5 145.9 A50.5 50.5 0 0 0 554.1 128.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M547.3 149.1 L554.3 147.8 A43.1 43.1 0 0 1 554.3 164.2 L547.3 162.9 A36.0 36.0 0 0 0 547.3 149.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M554.3 147.8 L560.1 146.7 A49.0 49.0 0 0 1 560.1 165.3 L554.3 164.2 A43.1 43.1 0 0 0 554.3 147.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M560.1 146.7 L564.2 145.9 A53.1 53.1 0 0 1 564.2 166.1 L560.1 165.3 A49.0 49.0 0 0 0 560.1 146.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M564.2 145.9 L566.6 145.4 A55.6 55.6 0 0 1 566.6 166.6 L564.2 166.1 A53.1 53.1 0 0 0 564.2 145.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M566.6 145.4 L567.8 145.1 A56.9 56.9 0 0 1 567.8 166.9 L566.6 166.6 A55.6 55.6 0 0 0 566.6 145.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M547.3 163.2 L552.4 164.2 A41.2 41.2 0 0 1 546.4 178.8 L542.0 175.9 A36.0 36.0 0 0 0 547.3 163.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M552.4 164.2 L556.7 165.1 A45.6 45.6 0 0 1 550.0 181.2 L546.4 178.8 A41.2 41.2 0 0 0 552.4 164.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M556.7 165.1 L559.7 165.7 A48.7 48.7 0 0 1 552.6 182.9 L550.0 181.2 A45.6 45.6 0 0 0 556.7 165.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M559.7 165.7 L561.5 166.1 A50.5 50.5 0 0 1 554.1 183.9 L552.6 182.9 A48.7 48.7 0 0 0 559.7 165.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M561.5 166.1 L562.4 166.3 A51.4 51.4 0 0 1 554.9 184.4 L554.1 183.9 A50.5 50.5 0 0 0 561.5 166.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M541.8 176.1 L544.2 177.7 A38.9 38.9 0 0 1 533.7 188.2 L532.1 185.8 A36.0 36.0 0 0 0 541.8 176.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M544.2 177.7 L546.2 179.1 A41.2 41.2 0 0 1 535.1 190.2 L533.7 188.2 A38.9 38.9 0 0 0 544.2 177.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M546.2 179.1 L547.6 180.0 A42.9 42.9 0 0 1 536.0 191.6 L535.1 190.2 A41.2 41.2 0 0 0 546.2 179.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M547.6 180.0 L548.4 180.6 A43.9 43.9 0 0 1 536.6 192.4 L536.0 191.6 A42.9 42.9 0 0 0 547.6 180.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M548.4 180.6 L548.8 180.8 A44.4 44.4 0 0 1 536.8 192.8 L536.6 192.4 A43.9 43.9 0 0 0 548.4 180.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M531.9 186.0 L533.2 188.1 A38.4 38.4 0 0 1 519.7 193.7 L519.2 191.3 A36.0 36.0 0 0 0 531.9 186.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M533.2 188.1 L534.3 189.7 A40.4 40.4 0 0 1 520.1 195.6 L519.7 193.7 A38.4 38.4 0 0 0 533.2 188.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M534.3 189.7 L535.1 190.9 A41.9 41.9 0 0 1 520.3 197.0 L520.1 195.6 A40.4 40.4 0 0 0 534.3 189.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M535.1 190.9 L535.6 191.6 A42.7 42.7 0 0 1 520.5 197.9 L520.3 197.0 A41.9 41.9 0 0 0 535.1 190.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M535.6 191.6 L535.8 192.0 A43.2 43.2 0 0 1 520.6 198.3 L520.5 197.9 A42.7 42.7 0 0 0 535.6 191.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M518.9 191.3 L519.9 196.4 A41.2 41.2 0 0 1 504.1 196.4 L505.1 191.3 A36.0 36.0 0 0 0 518.9 191.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M519.9 196.4 L520.7 200.6 A45.4 45.4 0 0 1 503.3 200.6 L504.1 196.4 A41.2 41.2 0 0 0 519.9 196.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M520.7 200.6 L521.2 203.6 A48.5 48.5 0 0 1 502.8 203.6 L503.3 200.6 A45.4 45.4 0 0 0 520.7 200.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M521.2 203.6 L521.6 205.4 A50.3 50.3 0 0 1 502.4 205.4 L502.8 203.6 A48.5 48.5 0 0 0 521.2 203.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M521.6 205.4 L521.8 206.3 A51.2 51.2 0 0 1 502.2 206.3 L502.4 205.4 A50.3 50.3 0 0 0 521.6 205.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M504.8 191.3 L501.9 205.4 A50.5 50.5 0 0 1 484.2 198.1 L492.1 186.0 A36.0 36.0 0 0 0 504.8 191.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M501.9 205.4 L499.6 217.1 A62.4 62.4 0 0 1 477.6 208.0 L484.2 198.1 A50.5 50.5 0 0 0 501.9 205.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M499.6 217.1 L497.9 225.4 A70.9 70.9 0 0 1 472.9 215.1 L477.6 208.0 A62.4 62.4 0 0 0 499.6 217.1 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M497.9 225.4 L496.9 230.4 A76.0 76.0 0 0 1 470.1 219.3 L472.9 215.1 A70.9 70.9 0 0 0 497.9 225.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M496.9 230.4 L496.3 232.9 A78.5 78.5 0 0 1 468.7 221.5 L470.1 219.3 A76.0 76.0 0 0 0 496.9 230.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M491.9 185.8 L478.9 205.0 A59.1 59.1 0 0 1 463.0 189.1 L482.2 176.1 A36.0 36.0 0 0 0 491.9 185.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M478.9 205.0 L468.3 220.8 A78.2 78.2 0 0 1 447.2 199.7 L463.0 189.1 A59.1 59.1 0 0 0 478.9 205.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M468.3 220.8 L460.7 232.1 A91.8 91.8 0 0 1 435.9 207.3 L447.2 199.7 A78.2 78.2 0 0 0 468.3 220.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M460.7 232.1 L456.1 238.8 A99.9 99.9 0 0 1 429.2 211.9 L435.9 207.3 A91.8 91.8 0 0 0 460.7 232.1 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M456.1 238.8 L453.8 242.2 A104.0 104.0 0 0 1 425.8 214.2 L429.2 211.9 A99.9 99.9 0 0 0 456.1 238.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M482.0 175.9 L464.2 187.7 A57.4 57.4 0 0 1 455.8 167.4 L476.7 163.2 A36.0 36.0 0 0 0 482.0 175.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M464.2 187.7 L449.5 197.4 A74.9 74.9 0 0 1 438.6 170.9 L455.8 167.4 A57.4 57.4 0 0 0 464.2 187.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M449.5 197.4 L439.0 204.3 A87.5 87.5 0 0 1 426.3 173.4 L438.6 170.9 A74.9 74.9 0 0 0 449.5 197.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M439.0 204.3 L432.8 208.5 A95.0 95.0 0 0 1 418.9 174.9 L426.3 173.4 A87.5 87.5 0 0 0 439.0 204.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M432.8 208.5 L429.6 210.5 A98.8 98.8 0 0 1 415.2 175.7 L418.9 174.9 A95.0 95.0 0 0 0 432.8 208.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M476.7 162.9 L460.6 166.0 A52.3 52.3 0 0 1 460.6 146.0 L476.7 149.1 A36.0 36.0 0 0 0 476.7 162.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M460.6 166.0 L447.4 168.5 A65.8 65.8 0 0 1 447.4 143.5 L460.6 146.0 A52.3 52.3 0 0 0 460.6 166.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M447.4 168.5 L438.0 170.4 A75.4 75.4 0 0 1 438.0 141.6 L447.4 143.5 A65.8 65.8 0 0 0 447.4 168.5 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M438.0 170.4 L432.4 171.5 A81.1 81.1 0 0 1 432.4 140.5 L438.0 141.6 A75.4 75.4 0 0 0 438.0 170.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M432.4 171.5 L429.5 172.0 A84.0 84.0 0 0 1 429.5 140.0 L432.4 140.5 A81.1 81.1 0 0 0 432.4 171.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M476.7 148.8 L467.5 146.9 A45.4 45.4 0 0 1 474.1 130.9 L482.0 136.1 A36.0 36.0 0 0 0 476.7 148.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M467.5 146.9 L459.9 145.4 A53.2 53.2 0 0 1 467.6 126.6 L474.1 130.9 A45.4 45.4 0 0 0 467.5 146.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M459.9 145.4 L454.4 144.3 A58.8 58.8 0 0 1 463.0 123.6 L467.6 126.6 A53.2 53.2 0 0 0 459.9 145.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M454.4 144.3 L451.2 143.6 A62.1 62.1 0 0 1 460.2 121.7 L463.0 123.6 A58.8 58.8 0 0 0 454.4 144.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M451.2 143.6 L449.5 143.3 A63.8 63.8 0 0 1 458.8 120.8 L460.2 121.7 A62.1 62.1 0 0 0 451.2 143.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M482.2 135.9 L479.0 133.7 A39.9 39.9 0 0 1 489.7 123.0 L491.9 126.2 A36.0 36.0 0 0 0 482.2 135.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M479.0 133.7 L476.3 131.9 A43.0 43.0 0 0 1 487.9 120.3 L489.7 123.0 A39.9 39.9 0 0 0 479.0 133.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M476.3 131.9 L474.4 130.7 A45.3 45.3 0 0 1 486.7 118.4 L487.9 120.3 A43.0 43.0 0 0 0 476.3 131.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M474.4 130.7 L473.3 129.9 A46.7 46.7 0 0 1 485.9 117.3 L486.7 118.4 A45.3 45.3 0 0 0 474.4 130.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M473.3 129.9 L472.8 129.5 A47.3 47.3 0 0 1 485.5 116.8 L485.9 117.3 A46.7 46.7 0 0 0 473.3 129.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M492.1 126.0 L490.9 124.1 A38.2 38.2 0 0 1 504.4 118.6 L504.8 120.7 A36.0 36.0 0 0 0 492.1 126.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M490.9 124.1 L489.9 122.6 A40.0 40.0 0 0 1 504.0 116.8 L504.4 118.6 A38.2 38.2 0 0 0 490.9 124.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M489.9 122.6 L489.2 121.5 A41.3 41.3 0 0 1 503.8 115.5 L504.0 116.8 A40.0 40.0 0 0 0 489.9 122.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M489.2 121.5 L488.7 120.9 A42.1 42.1 0 0 1 503.6 114.7 L503.8 115.5 A41.3 41.3 0 0 0 489.2 121.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M488.7 120.9 L488.5 120.5 A42.5 42.5 0 0 1 503.5 114.3 L503.6 114.7 A42.1 42.1 0 0 0 488.7 120.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="512" y="42" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="629" y="159" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="512" y="276" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="395" y="159" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <path d="M262 156 L336 156" stroke="var(--wr-ink3)" stroke-width="1" stroke-dasharray="4 3"/>
+  <path d="M336 156 l-7 -3.5 l0 7 Z" fill="var(--wr-ink3)"/>
+  <text x="299" y="148" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)" text-anchor="middle">Scale slider</text>
+  <text x="299" y="172" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)" text-anchor="middle">100% &#8594; 200%</text>
+  <text x="168" y="244" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)" text-anchor="middle">FOOTPRINT 20 &#215; 20 m</text>
+  <text x="512" y="294" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)" text-anchor="middle">FOOTPRINT 40 &#215; 40 m</text>
+  <text x="20" y="312" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-no)">Identical shape, identical percentages. The size is the footprint speaking, not the wind.</text>
+  <text x="20" y="328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9.5" fill="var(--wr-ink3)">Schematic &#8212; illustrative shape. What is exact is that both drawings come from one unchanged table.</text>
+</svg>
+<figcaption>Plan. The footprint sets the drawn size; the data sets the shape. Only one of the two is telling you about the wind.</figcaption>
+        </figure>
+        <ol class="wr-steps">
+          <li>Load any preset, then import an <code>.obj</code> model &mdash; or leave the default
+            placeholder footprint in place.</li>
+          <li>Note the rose&rsquo;s shape and size.</li>
+          <li>Change the <b>Scale</b> slider from 100% to 250%, then back down to 50%.</li>
+          <li>Watch the rose while you do it.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> The rose&rsquo;s size changes with the
+          building&rsquo;s footprint; its shape &mdash; the only part that carries data &mdash; does
+          not move at all, because nothing about the geometry enters the binning. A rose has no idea
+          a building is even present, so it cannot show downwash, channelling, wake or shelter of
+          any kind. Reading those needs a flow tool &mdash; this tool&rsquo;s own sister
+          application, Urban Wind Lab, solves exactly that, on the explicit condition of accepting
+          its own, quite different, set of caveats.</p>
+      </div>
+
+      <div class="wr-ex">
+        <span class="wr-ex-n">Exercise 03</span>
+        <h3>The commonest direction is not the windiest one</h3>
+        <figure class="wr-fig">
+<svg viewBox="0 0 720 260" role="img" aria-label="One rose with the bins coloured by speed. The tallest petal is the most frequent direction and is almost all low-speed hours. A shorter petal carries a much larger share of the highest speed bins, so it delivers more energy despite blowing less often.">
+  <text x="20" y="24" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="11" fill="var(--wr-ink)">TALLEST IS NOT WINDIEST</text>
+  <circle cx="220" cy="140" r="59" fill="none" stroke="var(--wr-rule)" stroke-width="1"/>
+  <path d="M218.3 129.8 L218.1 128.6 A11.6 11.6 0 0 1 221.9 128.6 L221.7 129.8 A10.3 10.3 0 0 0 218.3 129.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M218.1 128.6 L217.9 127.6 A12.6 12.6 0 0 1 222.1 127.6 L221.9 128.6 A11.6 11.6 0 0 0 218.1 128.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M217.9 127.6 L217.8 126.7 A13.5 13.5 0 0 1 222.2 126.7 L222.1 127.6 A12.6 12.6 0 0 0 217.9 127.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M217.8 126.7 L217.7 126.5 A13.6 13.6 0 0 1 222.3 126.5 L222.2 126.7 A13.5 13.5 0 0 0 217.8 126.7 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M217.7 126.5 L217.7 126.4 A13.8 13.8 0 0 1 222.3 126.4 L222.3 126.5 A13.6 13.6 0 0 0 217.7 126.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M222.3 129.9 L222.6 128.7 A11.6 11.6 0 0 1 226.1 130.2 L225.5 131.2 A10.3 10.3 0 0 0 222.3 129.9 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M222.6 128.7 L222.8 127.7 A12.6 12.6 0 0 1 226.7 129.3 L226.1 130.2 A11.6 11.6 0 0 0 222.6 128.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M222.8 127.7 L223.0 126.9 A13.5 13.5 0 0 1 227.1 128.6 L226.7 129.3 A12.6 12.6 0 0 0 222.8 127.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M223.0 126.9 L223.1 126.7 A13.6 13.6 0 0 1 227.2 128.4 L227.1 128.6 A13.5 13.5 0 0 0 223.0 126.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M223.1 126.7 L223.1 126.6 A13.8 13.8 0 0 1 227.3 128.3 L227.2 128.4 A13.6 13.6 0 0 0 223.1 126.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M226.0 131.6 L226.7 130.6 A11.6 11.6 0 0 1 229.4 133.3 L228.4 134.0 A10.3 10.3 0 0 0 226.0 131.6 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M226.7 130.6 L227.3 129.8 A12.6 12.6 0 0 1 230.2 132.7 L229.4 133.3 A11.6 11.6 0 0 0 226.7 130.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M227.3 129.8 L227.8 129.0 A13.5 13.5 0 0 1 231.0 132.2 L230.2 132.7 A12.6 12.6 0 0 0 227.3 129.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M227.8 129.0 L227.9 128.9 A13.6 13.6 0 0 1 231.1 132.1 L231.0 132.2 A13.5 13.5 0 0 0 227.8 129.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M227.9 128.9 L228.0 128.8 A13.8 13.8 0 0 1 231.2 132.0 L231.1 132.1 A13.6 13.6 0 0 0 227.9 128.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M228.8 134.5 L229.8 133.9 A11.6 11.6 0 0 1 231.3 137.4 L230.1 137.7 A10.3 10.3 0 0 0 228.8 134.5 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M229.8 133.9 L230.7 133.3 A12.6 12.6 0 0 1 232.3 137.2 L231.3 137.4 A11.6 11.6 0 0 0 229.8 133.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M230.7 133.3 L231.4 132.9 A13.5 13.5 0 0 1 233.1 137.0 L232.3 137.2 A12.6 12.6 0 0 0 230.7 133.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M231.4 132.9 L231.6 132.8 A13.6 13.6 0 0 1 233.3 136.9 L233.1 137.0 A13.5 13.5 0 0 0 231.4 132.9 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M231.6 132.8 L231.7 132.7 A13.8 13.8 0 0 1 233.4 136.9 L233.3 136.9 A13.6 13.6 0 0 0 231.6 132.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M230.2 138.3 L231.4 138.1 A11.6 11.6 0 0 1 231.4 141.9 L230.2 141.7 A10.3 10.3 0 0 0 230.2 138.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M231.4 138.1 L232.4 137.9 A12.6 12.6 0 0 1 232.4 142.1 L231.4 141.9 A11.6 11.6 0 0 0 231.4 138.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M232.4 137.9 L233.3 137.8 A13.5 13.5 0 0 1 233.3 142.2 L232.4 142.1 A12.6 12.6 0 0 0 232.4 137.9 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M233.3 137.8 L233.5 137.7 A13.6 13.6 0 0 1 233.5 142.3 L233.3 142.2 A13.5 13.5 0 0 0 233.3 137.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M233.5 137.7 L233.6 137.7 A13.8 13.8 0 0 1 233.6 142.3 L233.5 142.3 A13.6 13.6 0 0 0 233.5 137.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M230.1 142.3 L231.3 142.6 A11.6 11.6 0 0 1 229.8 146.1 L228.8 145.5 A10.3 10.3 0 0 0 230.1 142.3 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M231.3 142.6 L232.3 142.8 A12.6 12.6 0 0 1 230.7 146.7 L229.8 146.1 A11.6 11.6 0 0 0 231.3 142.6 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M232.3 142.8 L233.1 143.0 A13.5 13.5 0 0 1 231.4 147.1 L230.7 146.7 A12.6 12.6 0 0 0 232.3 142.8 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M233.1 143.0 L233.3 143.1 A13.6 13.6 0 0 1 231.6 147.2 L231.4 147.1 A13.5 13.5 0 0 0 233.1 143.0 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M233.3 143.1 L233.4 143.1 A13.8 13.8 0 0 1 231.7 147.3 L231.6 147.2 A13.6 13.6 0 0 0 233.3 143.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M228.4 146.0 L229.4 146.7 A11.6 11.6 0 0 1 226.7 149.4 L226.0 148.4 A10.3 10.3 0 0 0 228.4 146.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M229.4 146.7 L230.2 147.3 A12.6 12.6 0 0 1 227.3 150.2 L226.7 149.4 A11.6 11.6 0 0 0 229.4 146.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M230.2 147.3 L231.0 147.8 A13.5 13.5 0 0 1 227.8 151.0 L227.3 150.2 A12.6 12.6 0 0 0 230.2 147.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M231.0 147.8 L231.1 147.9 A13.6 13.6 0 0 1 227.9 151.1 L227.8 151.0 A13.5 13.5 0 0 0 231.0 147.8 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M231.1 147.9 L231.2 148.0 A13.8 13.8 0 0 1 228.0 151.2 L227.9 151.1 A13.6 13.6 0 0 0 231.1 147.9 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M225.5 148.8 L226.1 149.8 A11.6 11.6 0 0 1 222.6 151.3 L222.3 150.1 A10.3 10.3 0 0 0 225.5 148.8 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M226.1 149.8 L226.7 150.7 A12.6 12.6 0 0 1 222.8 152.3 L222.6 151.3 A11.6 11.6 0 0 0 226.1 149.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M226.7 150.7 L227.1 151.4 A13.5 13.5 0 0 1 223.0 153.1 L222.8 152.3 A12.6 12.6 0 0 0 226.7 150.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M227.1 151.4 L227.2 151.6 A13.6 13.6 0 0 1 223.1 153.3 L223.0 153.1 A13.5 13.5 0 0 0 227.1 151.4 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M227.2 151.6 L227.3 151.7 A13.8 13.8 0 0 1 223.1 153.4 L223.1 153.3 A13.6 13.6 0 0 0 227.2 151.6 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M221.7 150.2 L221.9 151.4 A11.6 11.6 0 0 1 218.1 151.4 L218.3 150.2 A10.3 10.3 0 0 0 221.7 150.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M221.9 151.4 L222.1 152.4 A12.6 12.6 0 0 1 217.9 152.4 L218.1 151.4 A11.6 11.6 0 0 0 221.9 151.4 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M222.1 152.4 L222.2 153.3 A13.5 13.5 0 0 1 217.8 153.3 L217.9 152.4 A12.6 12.6 0 0 0 222.1 152.4 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M222.2 153.3 L222.3 153.5 A13.6 13.6 0 0 1 217.7 153.5 L217.8 153.3 A13.5 13.5 0 0 0 222.2 153.3 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M222.3 153.5 L222.3 153.6 A13.8 13.8 0 0 1 217.7 153.6 L217.7 153.5 A13.6 13.6 0 0 0 222.3 153.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M217.7 150.1 L216.8 153.7 A14.1 14.1 0 0 1 212.5 152.0 L214.5 148.8 A10.3 10.3 0 0 0 217.7 150.1 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M216.8 153.7 L216.2 156.7 A17.1 17.1 0 0 1 210.9 154.5 L212.5 152.0 A14.1 14.1 0 0 0 216.8 153.7 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M216.2 156.7 L215.6 159.2 A19.7 19.7 0 0 1 209.5 156.7 L210.9 154.5 A17.1 17.1 0 0 0 216.2 156.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M215.6 159.2 L214.3 164.7 A25.3 25.3 0 0 1 206.6 161.5 L209.5 156.7 A19.7 19.7 0 0 0 215.6 159.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M214.3 164.7 L213.3 169.1 A29.9 29.9 0 0 1 204.2 165.4 L206.6 161.5 A25.3 25.3 0 0 0 214.3 164.7 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M214.0 148.4 L211.4 152.1 A14.9 14.9 0 0 1 207.9 148.6 L211.6 146.0 A10.3 10.3 0 0 0 214.0 148.4 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M211.4 152.1 L209.3 155.0 A18.5 18.5 0 0 1 205.0 150.7 L207.9 148.6 A14.9 14.9 0 0 0 211.4 152.1 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M209.3 155.0 L207.4 157.6 A21.6 21.6 0 0 1 202.4 152.6 L205.0 150.7 A18.5 18.5 0 0 0 209.3 155.0 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M207.4 157.6 L205.9 159.8 A24.3 24.3 0 0 1 200.2 154.1 L202.4 152.6 A21.6 21.6 0 0 0 207.4 157.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M205.9 159.8 L204.6 161.5 A26.5 26.5 0 0 1 198.5 155.4 L200.2 154.1 A24.3 24.3 0 0 0 205.9 159.8 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M211.2 145.5 L204.4 149.8 A18.4 18.4 0 0 1 202.0 144.1 L209.9 142.3 A10.3 10.3 0 0 0 211.2 145.5 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M204.4 149.8 L198.9 153.2 A24.9 24.9 0 0 1 195.7 145.6 L202.0 144.1 A18.4 18.4 0 0 0 204.4 149.8 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M198.9 153.2 L194.1 156.2 A30.6 30.6 0 0 1 190.2 146.9 L195.7 145.6 A24.9 24.9 0 0 0 198.9 153.2 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M194.1 156.2 L192.8 157.0 A32.1 32.1 0 0 1 188.7 147.2 L190.2 146.9 A30.6 30.6 0 0 0 194.1 156.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M192.8 157.0 L191.7 157.7 A33.3 33.3 0 0 1 187.5 147.5 L188.7 147.2 A32.1 32.1 0 0 0 192.8 157.0 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M209.8 141.7 L196.7 143.9 A23.6 23.6 0 0 1 196.7 136.1 L209.8 138.3 A10.3 10.3 0 0 0 209.8 141.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M196.7 143.9 L186.3 145.6 A34.2 34.2 0 0 1 186.3 134.4 L196.7 136.1 A23.6 23.6 0 0 0 196.7 143.9 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M186.3 145.6 L177.1 147.2 A43.5 43.5 0 0 1 177.1 132.8 L186.3 134.4 A34.2 34.2 0 0 0 186.3 145.6 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M177.1 147.2 L175.1 147.5 A45.5 45.5 0 0 1 175.1 132.5 L177.1 132.8 A43.5 43.5 0 0 0 177.1 147.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M175.1 147.5 L173.5 147.8 A47.1 47.1 0 0 1 173.5 132.2 L175.1 132.5 A45.5 45.5 0 0 0 175.1 147.5 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M209.9 137.7 L202.7 136.0 A17.8 17.8 0 0 1 204.9 130.6 L211.2 134.5 A10.3 10.3 0 0 0 209.9 137.7 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M202.7 136.0 L196.8 134.7 A23.8 23.8 0 0 1 199.8 127.4 L204.9 130.6 A17.8 17.8 0 0 0 202.7 136.0 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M196.8 134.7 L191.8 133.5 A29.0 29.0 0 0 1 195.4 124.6 L199.8 127.4 A23.8 23.8 0 0 0 196.8 134.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M191.8 133.5 L190.7 133.2 A30.1 30.1 0 0 1 194.5 124.0 L195.4 124.6 A29.0 29.0 0 0 0 191.8 133.5 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M190.7 133.2 L189.7 133.0 A31.1 31.1 0 0 1 193.7 123.5 L194.5 124.0 A30.1 30.1 0 0 0 190.7 133.2 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M211.6 134.0 L210.6 133.3 A11.6 11.6 0 0 1 213.3 130.6 L214.0 131.6 A10.3 10.3 0 0 0 211.6 134.0 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M210.6 133.3 L209.8 132.7 A12.6 12.6 0 0 1 212.7 129.8 L213.3 130.6 A11.6 11.6 0 0 0 210.6 133.3 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M209.8 132.7 L209.0 132.2 A13.5 13.5 0 0 1 212.2 129.0 L212.7 129.8 A12.6 12.6 0 0 0 209.8 132.7 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M209.0 132.2 L208.9 132.1 A13.6 13.6 0 0 1 212.1 128.9 L212.2 129.0 A13.5 13.5 0 0 0 209.0 132.2 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M208.9 132.1 L208.8 132.0 A13.8 13.8 0 0 1 212.0 128.8 L212.1 128.9 A13.6 13.6 0 0 0 208.9 132.1 Z" fill="var(--wr-no)" opacity=".85"/>
+  <path d="M214.5 131.2 L213.9 130.2 A11.6 11.6 0 0 1 217.4 128.7 L217.7 129.9 A10.3 10.3 0 0 0 214.5 131.2 Z" fill="var(--wr-accent)" opacity=".22"/>
+  <path d="M213.9 130.2 L213.3 129.3 A12.6 12.6 0 0 1 217.2 127.7 L217.4 128.7 A11.6 11.6 0 0 0 213.9 130.2 Z" fill="var(--wr-accent)" opacity=".42"/>
+  <path d="M213.3 129.3 L212.9 128.6 A13.5 13.5 0 0 1 217.0 126.9 L217.2 127.7 A12.6 12.6 0 0 0 213.3 129.3 Z" fill="var(--wr-accent)" opacity=".66"/>
+  <path d="M212.9 128.6 L212.8 128.4 A13.6 13.6 0 0 1 216.9 126.7 L217.0 126.9 A13.5 13.5 0 0 0 212.9 128.6 Z" fill="var(--wr-warn)" opacity=".75"/>
+  <path d="M212.8 128.4 L212.7 128.3 A13.8 13.8 0 0 1 216.9 126.6 L216.9 126.7 A13.6 13.6 0 0 0 212.8 128.4 Z" fill="var(--wr-no)" opacity=".85"/>
+  <text x="220" y="74" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">N</text>
+  <text x="289" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">E</text>
+  <text x="220" y="212" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">S</text>
+  <text x="151" y="143" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9" fill="var(--wr-ink3)" text-anchor="middle">W</text>
+  <line x1="238" y1="72" x2="410" y2="58" stroke="var(--wr-ink3)" stroke-width="1"/>
+  <line x1="268" y1="176" x2="410" y2="186" stroke="var(--wr-ink3)" stroke-width="1"/>
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5">
+    <text x="418" y="54" fill="var(--wr-accent)">tallest stack &#183; most frequent</text>
+    <text x="418" y="70" fill="var(--wr-ink3)">but almost all low-speed hours</text>
+    <text x="418" y="182" fill="var(--wr-no)">shorter stack &#183; blows less often</text>
+    <text x="418" y="198" fill="var(--wr-ink3)">but most of it in the top bins</text>
+  </g>
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="9.5">
+    <text x="418" y="118" fill="var(--wr-ink3)">speed bins, m/s</text>
+    <rect x="418" y="126" width="22" height="11" fill="var(--wr-accent)" opacity=".22"/><text x="446" y="135" fill="var(--wr-ink3)">0&#8211;2</text>
+    <rect x="480" y="126" width="22" height="11" fill="var(--wr-accent)" opacity=".42"/><text x="508" y="135" fill="var(--wr-ink3)">2&#8211;4</text>
+    <rect x="542" y="126" width="22" height="11" fill="var(--wr-accent)" opacity=".66"/><text x="570" y="135" fill="var(--wr-ink3)">4&#8211;6</text>
+    <rect x="418" y="146" width="22" height="11" fill="var(--wr-warn)" opacity=".75"/><text x="446" y="155" fill="var(--wr-ink3)">6&#8211;8</text>
+    <rect x="480" y="146" width="22" height="11" fill="var(--wr-no)" opacity=".85"/><text x="508" y="155" fill="var(--wr-ink3)">8+</text>
+  </g>
+  <text x="20" y="242" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10.5" fill="var(--wr-ink)">Momentum scales with the square of speed, so a rarer fast direction can matter more.</text>
+  <text x="20" y="256" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="10" fill="var(--wr-ink3)">Schematic — the bin boundaries are the tool&#8217;s own.</text>
+</svg>
+<figcaption>One rose, bins coloured by speed. The tallest petal answers &ldquo;how often&rdquo;; the colour of the petals answers &ldquo;how hard&rdquo;.</figcaption>
+        </figure>
+        <ol class="wr-steps">
+          <li>Load the <b>Edinburgh</b> preset, <code>All Year</code>.</li>
+          <li>Find the direction with the tallest total stack &mdash; the most frequent
+            direction.</li>
+          <li>Look instead at which direction has the largest share sitting in the <code>6&ndash;8</code>
+            and <code>8+</code> bins specifically.</li>
+          <li>Compare the two directions.</li>
+        </ol>
+        <p class="wr-principle"><b>Principle.</b> Frequency and energy are different quantities. A
+          direction that blows often but gently can carry less total wind than one that blows rarely
+          but hard &mdash; wind&rsquo;s momentum scales with the square of its speed, so a less
+          frequent high-speed direction can matter more for structural loading or driving rain than
+          the direction the petals make look dominant at a glance. The rose shows frequency
+          directly; it takes a second look to find energy.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wr-sec">
+    <div class="wr-sechead"><span class="wr-secnum"></span><h2>Where it stops</h2></div>
+    <div class="wr-secbody">
+      <p>The tool is built to teach what a wind rose is and how one is assembled from recorded data.
+        For a wind statement that must inform a real design decision, correct the data for height
+        and terrain first, and bring in a flow tool or a wind engineer for anything involving a
+        building&rsquo;s response to that wind.</p>
+      <p>Two limitations of the artefact itself are worth stating plainly. <b>It is unvalidated:</b>
+        no comparison against a published wind rose for the same station exists in the tool or
+        anywhere behind it, and no benchmark or reference dataset appears anywhere in the source.
+        <b>And it is not self-contained:</b> a MapTiler API key sits as a plain string in
+        <span class="wr-mono">js/main.js</span>, visible to anyone who views the source, and the
+        running tool requests map tiles and location search from MapTiler over the network. It does
+        still work offline &mdash; after six seconds without a loaded map style the code falls back
+        to a blank, valid style, and the building and rose render fully; only the imagery underneath
+        is missing.</p>
+    </div>
+  </section>
+
+  <div class="wr-footer">
+
+    <h3>Licence</h3>
+    <p>&copy; Karam Al-Obaidi. The app is licensed <b>MIT</b>; this documentation is
+      <b><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></b>.
+      Both permit any use, including commercial, and ask only that you credit the author.</p>
+    <p>The application loads two third-party libraries at runtime &mdash; <b>MapLibre GL JS</b>
+      (version 4.7.1, 3-Clause BSD licence) and <b>three.js</b> (r128, MIT) &mdash; and it requests
+      map tiles and location search from <b>MapTiler</b>, built on <b>OpenStreetMap</b> data.
+      Practically, for anyone embedding this tool: leave the bundled libraries&rsquo; own licence
+      notices as they are, and leave the map&rsquo;s attribution control in place. The code does not
+      strip it &mdash; it replaces MapLibre&rsquo;s auto-added control with its own, repositioned and
+      starting collapsed to a small icon, but the required &ldquo;&copy; MapTiler &copy; OpenStreetMap
+      contributors&rdquo; notice is never altered or removed.</p>
+    <p>A model you analyse with the tool, and an EPW file you load into it, are <b>yours</b>. Neither
+      licence claims anything over your geometry or your uploaded weather data. An EPW file may carry
+      its own terms of use from whoever issued it.</p>
+
+    <h3 id="how-to-cite" style="scroll-margin-top:100px;">How to cite</h3>
+    <p>Cite it as software. Keeping the copyright notice in the file satisfies the licence; a
+      citation is the scholarly act on top of that.</p>
+    <p class="wr-ref">Al-Obaidi, K. M. (2026). <i>3D Wind Rose: A browser-based climate data and
+      building context viewer</i> (Version 1.0.1) [Computer software]. Zenodo.
+      <a href="https://doi.org/10.5281/zenodo.22812055" target="_blank" rel="noopener">https://doi.org/10.5281/zenodo.22812055</a></p>
+<pre>@software{alobaidi20263dwindrose,
+  author    = {Al-Obaidi, Karam M.},
+  title     = {3D Wind Rose: A browser-based climate data
+               and building context viewer},
+  year      = {2026},
+  version   = {1.0.1},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.22812055},
+  url       = {https://karam.me.uk/applications/3d-wind-rose/},
+  note      = {Code MIT licensed; accompanying material CC BY 4.0}
+}</pre>
+    <p>That DOI names this release. To cite the software in general rather than version 1.0.1, use
+      the concept DOI <a href="https://doi.org/10.5281/zenodo.22802663" target="_blank" rel="noopener">10.5281/zenodo.22802663</a>,
+      which always resolves to the newest version. Version 1.0.0 is
+      <a href="https://doi.org/10.5281/zenodo.22802664" target="_blank" rel="noopener">10.5281/zenodo.22802664</a>.</p>
+    <p><b>Report three things alongside any figure</b> taken from the tool: the <b>station or file</b>
+      the wind data came from, whether the figure is <b>annual or a single month</b>, and the
+      <b>calm percentage</b>. The calm figure is what lets someone else check that your quoted
+      percentages are internally consistent.</p>
+
+    <h3>References</h3>
+    <p><b>The source code cites no literature.</b> It contains no bibliography and no reading list.
+      What it does contain are named things: a file format, a data product, two runtime libraries and
+      two network services. The entries below are this page&rsquo;s identification of where those
+      named things come from &mdash; not a record of what was consulted while the tool was written.</p>
+
+    <h4>Data</h4>
+    <p class="wr-ref">U.S. Department of Energy. (2023). <i>EnergyPlus Weather File (EPW) data
+      dictionary</i>, in <i>Auxiliary Programs</i> (EnergyPlus 23.2 documentation).
+      <a href="https://energyplus.net/documentation" target="_blank" rel="noopener">energyplus.net/documentation</a>
+      &mdash; the column layout the parser reads, and the work its own comment names.</p>
+    <p class="wr-ref">Lawrie, L. K., &amp; Crawley, D. B. (2022). <i>Development of global typical
+      meteorological years (TMYx)</i>. Climate.OneBuilding.Org.
+      <a href="https://climate.onebuilding.org" target="_blank" rel="noopener">climate.onebuilding.org</a>
+      &mdash; the three embedded presets. The site&rsquo;s own citation notice gives different years
+      on different pages (2019, 2022 and 2026 all appear); the year above is as read.</p>
+
+    <h4>Libraries and services</h4>
+    <p class="wr-ref">MapLibre contributors. (2024). <i>MapLibre GL JS</i> (v4.7.1) [Computer
+      software]. 3-Clause BSD licence.
+      <a href="https://github.com/maplibre/maplibre-gl-js/releases/tag/v4.7.1" target="_blank" rel="noopener">github.com/maplibre/maplibre-gl-js</a></p>
+    <p class="wr-ref">Three.js authors. (2021). <i>three.js</i> (r128) [Computer software]. MIT
+      licence. <a href="https://github.com/mrdoob/three.js/releases/tag/r128" target="_blank" rel="noopener">github.com/mrdoob/three.js</a></p>
+    <p class="wr-ref">MapTiler. Map tile and geocoding service.
+      <a href="https://www.maptiler.com" target="_blank" rel="noopener">maptiler.com</a> &mdash; and
+      OpenStreetMap contributors, <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">openstreetmap.org/copyright</a>,
+      whose data it is built on.</p>
+
+    <h3>Further reading &mdash; not named by the code</h3>
+    <p>Nothing here is used by the tool or relied on above. Provenance makes a poor starting point
+      for a reader: a file-format specification and a library release tag will not teach anyone what
+      to do with a wind rose. These will.</p>
+    <p class="wr-ref">Troen, I., &amp; Petersen, E. L. (1989). <i>European wind atlas</i>. Ris&oslash;
+      National Laboratory, Roskilde. ISBN 87-550-1482-8. &mdash; the standard reference for
+      correcting station wind data to a site using roughness and terrain: precisely the correction
+      this tool does not perform.</p>
+    <p class="wr-ref">Cook, N. J. (1985). <i>The designer&rsquo;s guide to wind loading of building
+      structures. Part 1</i>. Butterworths, London, with BRE. ISBN 0-408-00870-9. &mdash; covers the
+      terrain-roughness and height-correction methods this tool leaves to the reader.</p>
+    <p class="wr-ref">Givoni, B. (1998). <i>Climate considerations in building and urban design</i>.
+      Van Nostrand Reinhold, New York. ISBN 0-471-29177-3. &mdash; sets a wind rose in the context of
+      an actual design decision: orientation, opening placement, courtyard layout.</p>
+
+    <p class="wr-cite">Every entry above is taken from a named, citable source, with identifying
+      details &mdash; ISBN, version tag, release date &mdash; given where confirmed. One could not be
+      pinned to a single version: TMYx&rsquo;s own citation page states a different year in different
+      places, noted on that entry. Every figure above is read from the tool&rsquo;s source or
+      computed from it.</p>
+
+  </div>
+
+</div>
