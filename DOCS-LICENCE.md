@@ -25,3 +25,16 @@ Under the following terms:
 
 Full legal code: <https://creativecommons.org/licenses/by/4.0/legalcode>
 Human-readable summary: <https://creativecommons.org/licenses/by/4.0/>
+
+------------------------------------------------------------------------------
+
+THE CUBE DEVICE
+
+The cube device used as this project's icon and logo is the author's own mark.
+It is NOT covered by the MIT licence or by CC BY 4.0, and neither licence
+grants any right to use it. All rights in it are reserved.
+
+Redistribute the software and the documentation under their licences with the
+mark left intact, as a statement of where the work came from. Do not adopt it
+as your own badge, put it in your own project's branding, or use it in any way
+that suggests your work is this project or is endorsed by its author.
