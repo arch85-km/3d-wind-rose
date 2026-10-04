@@ -427,10 +427,14 @@
     if (!mapLoaded && !anyDataReceived) {
       map.once('load', ensureBuildingLayer);
       map.setStyle(EMPTY_STYLE);
-      // Not a path: in the single-file build there is no js/main.js to open, and
-      // sending a reader to a file that is not there is worse than saying less.
-      showToast('No MapTiler API key set \u2014 the wind rose works without one; '
-              + 'add a key to see live map imagery', 'error');
+      // This fires when no map data has arrived in six seconds. That happens
+      // with no key, a wrong key, a key restricted to another origin, an
+      // exhausted quota or a blocked network, and from here the five are
+      // indistinguishable - so say what is observed, not which cause it is.
+      // Naming one, as this did, sends a reader to fix something that may
+      // already be right.
+      showToast('The map imagery did not load \u2014 check the MapTiler key and the '
+              + 'connection. The wind rose works without it.', 'error');
     }
   }, 6000);
 
