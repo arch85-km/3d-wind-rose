@@ -1,6 +1,6 @@
 /**
  * 3D Wind Rose — building.js
- * Version 1.0.1 — 2026-09-17
+ * Version 1.1.0 — 2026-10-04
  *
  * Render-style helper shared by whatever 3D model is currently loaded
  * (only a user-supplied .obj model now — the earlier procedural building

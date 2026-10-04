@@ -2,10 +2,8 @@
 
 This project's own code is MIT-licensed (see [LICENSE](LICENSE)). It
 depends on two third-party libraries, which are not vendored in this
-repository — both are loaded from a CDN at runtime (see `index.html`);
-the standalone single-file build (see [README.md](README.md)) inlines
-both directly instead. They carry their own licences, reproduced in full
-below.
+repository — both are loaded from a CDN at runtime (see `index.html`).
+They carry their own licences, reproduced in full below.
 
 ## three.js (r128), plus its OBJLoader and CSS2DRenderer example add-ons
 

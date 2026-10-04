@@ -25,7 +25,7 @@ history, made directly in this repo.
 
 ## Version
 
-**1.0.1** — 2026-09-17
+**1.1.0** — 2026-10-04
 
 ## Setup
 
