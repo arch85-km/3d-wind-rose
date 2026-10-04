@@ -2607,7 +2607,10 @@ window.App = window.App || {};
     if (!mapLoaded && !anyDataReceived) {
       map.once('load', ensureBuildingLayer);
       map.setStyle(EMPTY_STYLE);
-      showToast('Add a free MapTiler API key in js/main.js to see live map imagery', 'error');
+      // Not a path: in the single-file build there is no js/main.js to open, and
+      // sending a reader to a file that is not there is worse than saying less.
+      showToast('No MapTiler API key set \u2014 the wind rose works without one; '
+              + 'add a key to see live map imagery', 'error');
     }
   }, 6000);
 

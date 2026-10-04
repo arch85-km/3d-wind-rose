@@ -1,0 +1,3 @@
+# A keyed build: tools/build-standalone.mjs --key writes here, and a page
+# carrying a MapTiler key must never become a commit.
+deploy/

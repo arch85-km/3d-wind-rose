@@ -14,7 +14,16 @@
  *
  * Version and date are read from index.html, which is where they are declared.
  *
- * Usage: node tools/build-standalone.mjs
+ * The MapTiler key is NOT in the repository and must not be: index.html and
+ * js/main.js both keep the placeholder. A bundle built without --key therefore
+ * carries the placeholder too, and the map imagery will be absent — which is
+ * exactly what happens if you replace a keyed copy on a server with a fresh
+ * build. Pass the key to get a deployable file, written outside dist/ so a
+ * keyed page is never a candidate for a commit.
+ *
+ * Usage:
+ *   node tools/build-standalone.mjs                 dist/, placeholder key
+ *   node tools/build-standalone.mjs --key YOUR_KEY  deploy/, your key
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -54,7 +63,21 @@ out = out.replace(/^(\s*Version\s+[0-9][0-9.]*\s+—\s+\d{4}-\d{2}-\d{2})/m,
   '$1\n  Single-file build — this project\'s own CSS and JavaScript are inlined;\n' +
   '  three.js and MapLibre GL JS still load from the CDN, so a connection is needed.');
 
-mkdirSync(join(ROOT, 'dist'), { recursive: true });
-writeFileSync(join(ROOT, 'dist', '3d-wind-rose.html'), out);
-console.log(`built dist/3d-wind-rose.html  v${version} (${released})  ` +
-  `${scripts.length} scripts + 1 stylesheet inlined, ${(out.length / 1024).toFixed(1)} KB`);
+const PLACEHOLDER = 'YOUR_MAPTILER_API_KEY_HERE';
+const keyArg = process.argv.indexOf('--key');
+const key = keyArg > -1 ? process.argv[keyArg + 1] : '';
+if (keyArg > -1 && !key) throw new Error('--key given with no key after it');
+
+if (key) {
+  if (!out.includes(PLACEHOLDER)) throw new Error('no placeholder to substitute — has the key leaked into the source?');
+  out = out.split(PLACEHOLDER).join(key);
+}
+
+// A keyed page goes to deploy/, never dist/, so the two cannot be confused and
+// a key-bearing file is not sitting in a directory anyone would commit.
+const dir = key ? 'deploy' : 'dist';
+mkdirSync(join(ROOT, dir), { recursive: true });
+writeFileSync(join(ROOT, dir, '3d-wind-rose.html'), out);
+console.log(`built ${dir}/3d-wind-rose.html  v${version} (${released})  ` +
+  `${scripts.length} scripts + 1 stylesheet inlined, ${(out.length / 1024).toFixed(1)} KB` +
+  (key ? '  — with your MapTiler key' : '  — placeholder key, no map imagery'));
