@@ -814,3 +814,22 @@ input[type="range"] {
   #legend-overlay { display: none; }
 }
 
+
+
+/* ---- About: licence, credits and which release this file is ------------ */
+.about-panel { max-width: 540px; }
+.about-body h4 {
+  margin: 15px 0 6px; font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent, #6aa84f);
+}
+.about-body h4:first-child { margin-top: 0; }
+.about-body p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--text-secondary); }
+.about-body b { color: var(--text-primary); }
+.about-body a { color: var(--accent, #6aa84f); text-decoration: underline; text-underline-offset: 2px; }
+.about-cite {
+  margin: 0; padding: 9px 11px; white-space: pre-wrap;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px; line-height: 1.5; color: var(--text-secondary);
+}
+button.version-tag { background: none; border: 0; font: inherit; cursor: pointer; }

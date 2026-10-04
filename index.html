@@ -37,7 +37,7 @@
     <button id="btn-screenshot" class="icon-btn" type="button" title="Take a Screenshot" aria-label="Take a Screenshot">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 0 1 2-2h1.2l.9-1.5A2 2 0 0 1 9.83 3.5h4.34a2 2 0 0 1 1.73 1l.9 1.5H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.6"/></svg>
     </button>
-    <span class="version-tag" title="Released 2026-09-17">v1.0.1</span>
+    <button type="button" class="version-tag" id="btn-about" data-version="1.0.1" data-released="2026-09-17" title="Licence, credits and release">v1.0.1</button>
   </div>
 
   <!-- Unified sidebar: one bounded, internally-scrolling panel with
@@ -193,6 +193,76 @@
   <nav id="mobile-toolbar">
     <button type="button" id="mobile-menu-btn" class="mobile-tab">Menu</button>
   </nav>
+
+  <!-- Licence, credits and the release this file is -->
+  <div id="about-modal" class="modal-overlay">
+    <div class="modal-panel about-panel">
+      <div class="modal-header">
+        <h2>3D Wind Rose</h2>
+        <button id="btn-close-about" class="icon-btn" type="button" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="about-body">
+        <h4>This release</h4>
+        <p><b id="about-release">&mdash;</b> &mdash; the version of this file and the date it was
+          released. Quote it alongside any figure you publish: the tool has changed before, and two
+          runs of the same data on different releases can differ.</p>
+
+        <h4>Licence and credits</h4>
+        <p>&copy; Karam Al-Obaidi. The application is licensed <b>MIT</b> and the documentation
+          <b>CC BY 4.0</b> &mdash; use it, adapt it, build on it, for any purpose including
+          commercially. Credit is the only condition.</p>
+        <p>A model you analyse here is <b>yours</b>. Neither licence claims anything over your
+          geometry, your results or the images you export.</p>
+        <p>Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> r128
+          and <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre GL JS</a>, both
+          MIT. Unlike the other tools in this set they are <b>not bundled</b>: this app loads them
+          from a CDN, so it needs a network connection to start. Map imagery and place search come
+          from <a href="https://www.maptiler.com" target="_blank" rel="noopener">MapTiler</a> with
+          your own key; without one the wind rose and the building still render in full, and only
+          the imagery underneath is missing.</p>
+
+        <h4>How to cite</h4>
+        <pre class="about-cite" id="about-cite"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- The About dialog is wired here rather than in main.js on purpose: main.js
+       needs three.js, and three.js comes from a CDN. If that fetch fails the app
+       cannot start - which is exactly when someone most needs to read the
+       licence and find out what this file is. This runs either way. -->
+  <script>
+  (function () {
+    var trigger = document.getElementById('btn-about');
+    var modal = document.getElementById('about-modal');
+    if (!trigger || !modal) return;
+    var V = trigger.dataset.version || '';
+    var D = trigger.dataset.released || '';
+    var MONTHS = ['January','February','March','April','May','June','July',
+                  'August','September','October','November','December'];
+    var p = D.split('-');
+    var long = p.length === 3
+      ? parseInt(p[2], 10) + ' ' + MONTHS[parseInt(p[1], 10) - 1] + ' ' + p[0] : D;
+    var rel = document.getElementById('about-release');
+    if (rel) rel.textContent = V + ' \u00b7 ' + long;
+    var cite = document.getElementById('about-cite');
+    if (cite) cite.textContent =
+      'Al-Obaidi, K. M. (2026). 3D Wind Rose: A browser-based climate data\n' +
+      'and building context viewer (Version ' + V + ') [Computer software].\n' +
+      'Zenodo. https://doi.org/10.5281/zenodo.22802663';
+    function open() { modal.classList.add('open'); }
+    function close() { modal.classList.remove('open'); }
+    trigger.addEventListener('click', open);
+    var x = document.getElementById('btn-close-about');
+    if (x) x.addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) close();
+    });
+  })();
+  </script>
 
   <!-- Screenshot preview + format-choice dialog -->
   <div id="screenshot-modal" class="modal-overlay">
