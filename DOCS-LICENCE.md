@@ -30,7 +30,7 @@ Human-readable summary: <https://creativecommons.org/licenses/by/4.0/>
 
 THE CUBE DEVICE
 
-The cube device used as this project's icon and logo is the author's own mark.
+The cube device — the icon and logo — is the author's own mark.
 It is NOT covered by the MIT licence or by CC BY 4.0, and neither licence
 grants any right to use it. All rights in it are reserved.
 
