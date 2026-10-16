@@ -595,13 +595,14 @@
         appears anywhere in the source.</p>
 
       <h3>The tool is not self-contained</h3>
-      <p>The source embeds a MapTiler API key as a plain string in <span class="wr-mono">js/main.js</span>,
-        and the running tool makes network requests to MapTiler for both map tiles and location
-        search — visible to anyone who views the page's source. This is a real limitation of the
-        artefact, stated neutrally: it is not a single self-contained file the way its sister tool is.
-        The tool does still function without a working key or without network access at all —
-        confirmed directly: after 6 seconds without a loaded map style, the code falls back to a
-        blank, valid style, and the building and wind rose render fully; only the satellite/street
+      <p>The tool needs a connection. three.js and MapLibre GL JS load from a CDN, and the map
+        tiles and location search come from MapTiler, which needs an API key. The repository keeps
+        only a placeholder for that key in <span class="wr-mono">js/main.js</span>; the copy on the
+        website carries a key restricted to the website, visible to anyone who views the page's
+        source. The single-file build added in 1.1.0 inlines only the tool's own code, so it needs
+        the connection too. Without a working key, or when MapTiler cannot be reached, the tool
+        still works: after 6 seconds without map data, the code falls back to a blank, valid
+        style, and the building and wind rose render fully; only the satellite/street
         imagery underneath is missing.</p>
     </div>
   </div>

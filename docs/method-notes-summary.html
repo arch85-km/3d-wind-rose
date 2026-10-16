@@ -1073,11 +1073,11 @@
       <p>Two limitations of the artefact itself are worth stating plainly. <b>It is unvalidated:</b>
         no comparison against a published wind rose for the same station exists in the tool or
         anywhere behind it, and no benchmark or reference dataset appears anywhere in the source.
-        <b>And it is not self-contained:</b> a MapTiler API key sits as a plain string in
-        <span class="wr-mono">js/main.js</span>, visible to anyone who views the source, and the
-        running tool requests map tiles and location search from MapTiler over the network. It does
-        still work offline &mdash; after six seconds without a loaded map style the code falls back
-        to a blank, valid style, and the building and rose render fully; only the imagery underneath
+        <b>And it is not self-contained:</b> three.js and MapLibre GL JS load from a CDN, and the
+        map tiles and location search come from MapTiler, whose key, restricted to the website,
+        is visible to anyone who views the page&rsquo;s source. Without a working key the tool
+        still works &mdash; after six seconds without map data the code falls back to a blank,
+        valid style, and the building and rose render fully; only the imagery underneath
         is missing.</p>
     </div>
   </section>
