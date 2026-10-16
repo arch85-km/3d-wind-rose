@@ -1,0 +1,24 @@
+{
+  "upload_type": "software",
+  "title": "3D Wind Rose: A browser-based climate data and building context viewer",
+  "version": "1.1.0",
+  "publication_date": "2026-10-04",
+  "language": "eng",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Al-Obaidi, Karam M.",
+      "affiliation": "Sheffield Hallam University",
+      "orcid": "0000-0002-4379-6964"
+    }
+  ],
+  "description": "<p>An interactive 3D wind rose drawn over a live map, built for teaching architecture students. Wind data from an uploaded EPW file, or one of three built-in UK locations, is binned into a 16-direction frequency table with five speed bands, by month or for the whole year, and drawn at the site beside a default footprint or a building imported as an .obj model. It runs in the browser; three.js and MapLibre GL JS load from a CDN, and the basemap and location search come from MapTiler.</p>",
+  "notes": "Dual-licensed. The code (index.html, css/ and js/, and the single-file build made from them) is released under the MIT Licence. The accompanying material (the documentation pages, the method notes, the screenshots and the exercises) is released under CC BY 4.0. The cube device — the icon and logo — is the author's own mark. It is not covered by the MIT licence or by CC BY 4.0, and neither grants any right to use it; all rights in it are reserved. Keep the mark on a redistributed copy, but do not adopt it as your own badge.\n\nHow this was developed. I designed the application: I defined the problem and the scope, and chose the methods and the sources. I tested it in use, found its bugs, and decided what was released and when. The code was written with an AI coding assistant working to my specification and direction: it wrote most of the code, drafted the documentation for my review, diagnosed bugs and proposed fixes that I then tested, and wrote and ran the release checks. I retain full intellectual responsibility for the design, the methods and the results, including any errors.",
+  "keywords": [
+    "wind rose",
+    "EPW",
+    "climate data",
+    "building context",
+    "architecture teaching"
+  ]
+}

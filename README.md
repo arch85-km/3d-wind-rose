@@ -45,6 +45,21 @@ fully — you just won't see real map imagery underneath them.
 **Do not commit your API key.** Keep `js/main.js`'s `MAPTILER_KEY` as the
 placeholder in anything you push back to this repo.
 
+## How this was developed
+
+I design the application: I define the problem and the scope, and choose the
+methods and the sources. I test it in use, find its bugs, and decide what is
+released and when. The code is written with an AI coding assistant working
+to my specification and direction: it writes most of the code, drafts the
+documentation for my review, diagnoses bugs and proposes fixes that I test,
+and writes and runs the release checks. I retain full intellectual
+responsibility for the design, the methods and the results, including any
+errors.
+
+[DESIGN.md](DESIGN.md) records the design decisions and my reasons for them,
+[ARCHITECTURE.md](ARCHITECTURE.md) maps the code, and
+[CHANGELOG.md](CHANGELOG.md) lists what changed in each release.
+
 ## License
 
 - **Code** (`index.html`, `css/`, `js/`) is licensed under the [MIT
