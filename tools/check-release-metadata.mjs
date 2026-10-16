@@ -82,10 +82,86 @@ ok(`a version DOI for ${VERSION} ${releaseDoi ? 'is declared' : 'is not minted y
   true,
   releaseDoi || `documents cite the concept DOI ${conceptDoi} until Zenodo mints one`);
 
+/* --- the date that goes with it, and every other copy ---------------------
+   Ported from Solar Analysis Lab, where 1.2.0 shipped with the old date in its
+   About panel: the version bumped and the date stayed behind, because no check
+   read the date at all. Here the release is declared in index.html's header
+   comment and in the About button's data attributes; each stylesheet and
+   script repeats it in its own header, the single-file build copies it into
+   dist/, the README carries a short stamp, and the notes spell the date long
+   in their bylines. Every one of those is a copy that can drift. */
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                'August', 'September', 'October', 'November', 'December'];
+const cffDate = cff
+  ? ((cff.match(/^date-released:[ \t]*"?(\d{4}-\d{2}-\d{2})"?/m) || [])[1] || null)
+  : null;
+const longDate = (iso) => {
+  const d = new Date(iso + 'T00:00:00Z');
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
+const header = (text) => {
+  const m = text.match(/^\s*\*?\s*Version\s+([0-9][0-9.]*)\s+—\s+(\d{4}-\d{2}-\d{2})/m) || [];
+  return { v: m[1] || null, d: m[2] || null };
+};
+const aboutButton = (html) => {
+  const tag = (html.match(/<button[^>]*id="btn-about"[^>]*>[^<]*<\/button>/) || [''])[0];
+  return {
+    v: (tag.match(/data-version="([^"]*)"/) || [])[1] || null,
+    d: (tag.match(/data-released="([^"]*)"/) || [])[1] || null,
+    label: (tag.match(/>v?([0-9][0-9.]*)<\/button>/) || [])[1] || null,
+  };
+};
+
+if (cffDate && has('.zenodo.json')) {
+  const z = JSON.parse(read('.zenodo.json')).publication_date;
+  ok(".zenodo.json's publication_date agrees with CITATION.cff", z === cffDate,
+    `.zenodo.json ${z}, CITATION.cff ${cffDate}`);
+}
+
+for (const [file, label] of [['index.html', 'index.html'], ['dist/3d-wind-rose.html', 'the built dist/3d-wind-rose.html']]) {
+  if (!has(file)) continue;
+  const html = read(file);
+  const h = header(html), b = aboutButton(html);
+  ok(`${label}'s header names ${VERSION} and ${cffDate}`, h.v === VERSION && h.d === cffDate,
+    `header ${h.v} — ${h.d}` +
+    (file.startsWith('dist/') && (h.v !== VERSION || h.d !== cffDate) ? ' - rebuild with node tools/build-standalone.mjs' : ''));
+  ok(`${label}'s About button names ${VERSION} and ${cffDate}`,
+    b.v === VERSION && b.d === cffDate && b.label === VERSION,
+    `data-version ${b.v}, data-released ${b.d}, label v${b.label}`);
+  // The About panel builds its citation from the button's version and a DOI
+  // written into the page; that DOI must be one CITATION.cff declares.
+  const aboutDoi = (html.match(/doi\.org\/(10\.5281\/zenodo\.\d+)';/) || [])[1];
+  ok(`${label}'s About citation names a DOI that CITATION.cff declares`,
+    !!aboutDoi && cffDois.includes(aboutDoi), `${aboutDoi || '(none)'}`);
+}
+
+const ownFiles = has('index.html')
+  ? [...read('index.html').matchAll(/(?:href|src)="((?:css|js)\/[^"]+)"/g)].map((m) => m[1])
+  : [];
+const stale = ownFiles.filter((f) => { const h = header(read(f)); return h.v !== VERSION || h.d !== cffDate; });
+ok(`the ${ownFiles.length} stylesheet and script headers name ${VERSION} and ${cffDate}`,
+  ownFiles.length > 0 && stale.length === 0, stale.length ? `stale: ${stale.join(', ')}` : ownFiles.join(', '));
+
+if (has('README.md')) {
+  const stamp = read('README.md').match(/^\*\*([0-9][0-9.]*)\*\*\s+—\s+(\d{4}-\d{2}-\d{2})/m) || [];
+  ok("README's version stamp agrees with CITATION.cff", stamp[1] === VERSION && stamp[2] === cffDate,
+    `README ${stamp[1]} — ${stamp[2]}, CITATION.cff ${VERSION} — ${cffDate}`);
+}
+
 for (const doc of docs) {
   const html = read(doc);
   const byline = (html.match(/Version<\/b>[^0-9]*([0-9][0-9.]*)/) || [])[1];
   ok(`${doc} byline names ${VERSION}`, byline === VERSION, `byline ${byline}`);
+
+  if (cffDate) {
+    const bylineDate = (html.match(/Version<\/b>[^0-9]*[0-9][0-9.]*\s*(?:&middot;|·)\s*([^<]+)/) || [])[1];
+    ok(`${doc} byline is dated ${longDate(cffDate)}`,
+      (bylineDate || '').trim() === longDate(cffDate), `byline dated ${(bylineDate || '(none)').trim()}`);
+  }
+  const apa = (html.match(/\(Version ([0-9][0-9.]*)\) \[Computer software\]/) || [])[1];
+  const bibVersion = (html.match(/version\s*=\s*\{([^}]+)\}/) || [])[1];
+  ok(`${doc}'s APA and BibTeX citations name ${VERSION}`, apa === VERSION && bibVersion === VERSION,
+    `APA ${apa}, BibTeX ${bibVersion}`);
 
   const bibDoi = (html.match(/doi\s*=\s*\{([^}]+)\}/) || [])[1];
   if (bibDoi) {
@@ -93,6 +169,11 @@ for (const doc of docs) {
     ok(`${doc} cites ${releaseDoi ? 'this release\'s version DOI' : 'the concept DOI, as it must until one is minted'}`,
       !!want && bibDoi.trim() === want.trim(),
       `BibTeX doi ${bibDoi}, wanted ${want}`);
+    // The paragraph under the citation says which release the version DOI is
+    // frozen on, so it has to move with the DOI.
+    const frozen = (html.match(/frozen on ([0-9][0-9.]*[0-9])/) || [])[1];
+    if (frozen || releaseDoi) ok(`${doc} says the DOI is frozen on ${VERSION}`,
+      releaseDoi ? frozen === VERSION : !frozen, `frozen on ${frozen || '(not said)'}`);
     ok(`${doc} cites a DOI that CITATION.cff declares`,
       cffDois.some((d) => bibDoi.includes(d)),
       `${bibDoi} vs ${cffDois.join(', ') || 'none declared'}`);
