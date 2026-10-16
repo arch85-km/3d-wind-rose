@@ -208,12 +208,109 @@
 @media (prefers-reduced-motion:reduce){
   .wr-doc *{animation-duration:.01ms !important;transition-duration:.01ms !important;}
 }
+
+/* ---- Site style ---------------------------------------------------------
+   The rules above are the page's own design system. This block sets it in
+   karam.me.uk's style instead: its palette and red, Poppins headings and
+   labels over Source Serif 4 body text, hairlines rather than boxes, and
+   section titles set as small labels over a hairline, as the applications
+   page sets its tiers ("01 SET UP"). The site has no dark mode, so neither
+   has this page. Monospace is kept for formulas and code only. */
+.wr-doc,
+.wr-doc.wr-auto-dark{
+  --wr-paper:transparent; --wr-surface:#f4f6f9; --wr-surface2:#eceef1;
+  --wr-ink:#12161d; --wr-ink2:#4e5765; --wr-ink3:#5f6875;
+  --wr-rule:rgba(10,12,16,.16); --wr-rule2:rgba(10,12,16,.07);
+  --wr-accent:#b41f1f; --wr-accent-soft:rgba(180,31,31,.07);
+  --wr-ok:#2f6b3f; --wr-ok-soft:transparent;
+  --wr-warn:#8a6410; --wr-warn-soft:transparent;
+  --wr-no:#b41f1f; --wr-no-soft:transparent;
+  --wr-fd:"Poppins",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  --wr-fb:"Source Serif 4",Georgia,serif;
+  --wr-fl:"Poppins",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  .wr-doc.wr-auto-dark{
+    --wr-paper:transparent; --wr-surface:#f4f6f9; --wr-surface2:#eceef1;
+    --wr-ink:#333; --wr-ink2:#333; --wr-ink3:#5f6875;
+    --wr-rule:rgba(10,12,16,.16); --wr-rule2:rgba(10,12,16,.07);
+    --wr-accent:#b41f1f; --wr-accent-soft:rgba(180,31,31,.07);
+    --wr-ok:#2f6b3f; --wr-ok-soft:transparent;
+    --wr-warn:#8a6410; --wr-warn-soft:transparent;
+    --wr-no:#b41f1f; --wr-no-soft:transparent;
+  }
+}
+.wr-doc{line-height:1.6;}
+/* labels: small uppercase Poppins, not monospace */
+.wr-doc .wr-eyebrow,.wr-doc .wr-byline,.wr-doc .wr-secnum,.wr-doc h4,.wr-doc .wr-chip,
+.wr-doc .wr-ex-n,.wr-doc .wr-fig figcaption,.wr-doc .wr-tbl thead th,.wr-doc .wr-cite{
+  font-family:var(--wr-fl) !important;}
+.wr-doc .wr-eyebrow{font-size:.72rem;font-weight:500;letter-spacing:.07em;}
+.wr-doc .wr-byline{font-size:.78rem;letter-spacing:0;}
+.wr-doc h4,.wr-doc .wr-tbl thead th{font-weight:500;letter-spacing:.07em;}
+.wr-doc .wr-chip{background:none !important;padding:0;font-weight:500;letter-spacing:.07em;}
+.wr-doc .wr-fig figcaption{text-transform:none;letter-spacing:0;font-size:.8rem;}
+.wr-doc .wr-tbl .wr-n,.wr-doc .wr-tbl .wr-d,.wr-doc .wr-tbl .wr-p{
+  font-family:var(--wr-fb);font-variant-numeric:tabular-nums;}
+.wr-doc h1,.wr-doc h3,.wr-doc .wr-ledger dt{font-weight:500;letter-spacing:-.01em;}
+/* hairlines, not boxes or heavy rules */
+.wr-doc .wr-masthead{border-bottom:1px solid var(--wr-rule);}
+.wr-doc .wr-footer{border-top:1px solid var(--wr-rule);}
+.wr-doc .wr-traps{border:0;background:none;padding:0;}
+.wr-doc .wr-traps h2{font-weight:500;letter-spacing:.07em;color:var(--wr-ink);}
+.wr-doc .wr-ex{border:0;border-top:1px solid var(--wr-rule);background:none;padding:1.3rem 0 0;}
+.wr-doc .wr-ledger{border:0;background:none;}
+.wr-doc .wr-ledger>div{padding:.8rem 0;}
+.wr-doc .wr-tbl{border:0;}
+.wr-doc code{background:var(--wr-surface);color:var(--wr-ink);}
+.wr-doc .wr-fig svg{border:0;background:var(--wr-surface);}
+/* section titles as tier labels: number, title, hairline */
+.wr-doc .wr-sec{padding-top:2.2rem;}
+.wr-doc .wr-sechead{display:flex;gap:10px;align-items:baseline;border-top:0;
+  border-bottom:1px solid var(--wr-rule);padding:0 0 7px;margin-bottom:1.3rem;}
+.wr-doc .wr-secnum{font-size:.72rem;font-weight:600;color:var(--wr-ink);letter-spacing:.04em;}
+.wr-doc .wr-sechead h2{font-family:var(--wr-fl);font-size:.72rem;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;line-height:1.4;color:var(--wr-ink3);}
+.wr-doc .wr-secbody{display:block;}
+.wr-doc .wr-secnum:empty{display:none;}
+/* long addresses in the references break rather than push the page sideways on a phone */
+.wr-doc a,.wr-doc .wr-mono,.wr-doc code{overflow-wrap:anywhere;}
+/* a column of figures has its heading over the figures, not at the far edge */
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(2), tbody td.wr-d:nth-child(2)) thead th:nth-child(2),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(3), tbody td.wr-d:nth-child(3)) thead th:nth-child(3),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(4), tbody td.wr-d:nth-child(4)) thead th:nth-child(4),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(5), tbody td.wr-d:nth-child(5)) thead th:nth-child(5),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(6), tbody td.wr-d:nth-child(6)) thead th:nth-child(6),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(7), tbody td.wr-d:nth-child(7)) thead th:nth-child(7),
+.wr-doc .wr-tbl table:has(tbody td.wr-n:nth-child(8), tbody td.wr-d:nth-child(8)) thead th:nth-child(8){text-align:right;}
+/* the first column names the row, so it reads from the left like the text, even when it holds a number (unless its heading is marked as a figure) */
+.wr-doc .wr-tbl table:not(:has(thead th.wr-n:first-child)) tr > :first-child{text-align:left;}
+/* the site theme stripes table rows and tints them on hover; the notes keep one even tint */
+.wr-doc .wr-tbl th,.wr-doc .wr-tbl td{background-color:transparent;}
+/* formulas are <pre>, not <div>: the site's HTML minifier leaves <pre> alone but collapses the line breaks in a <div> */
+/* no side padding of its own: the Elementor section sets the margins, so the notes line up with the blocks above them on every screen */
+.wr-doc{padding-left:0;padding-right:0;}
+/* and no width cap of its own: on a wide screen a capped, centred block starts further in than the blocks above it */
+.wr-doc,.wr-doc.wr-auto-dark{max-width:none;margin-left:0;margin-right:0;}
+/* text runs the full width of the column, as the exercises do */
+.wr-doc,.wr-doc.wr-auto-dark{--wr-measure:none;}
+/* the title and text as the site's own page headings and body set them */
+.wr-doc,.wr-doc.wr-auto-dark{--wr-ink:#333;--wr-ink2:#333;}
+.wr-doc h1{font-size:2em;font-weight:600;line-height:1.15;letter-spacing:0;color:#333;}
+.wr-doc .wr-standfirst{color:#333;}
+/* each ledger item reads as one block: its tag above its title, not in a side column */
+.wr-doc .wr-ledger>div{grid-template-columns:minmax(0,1fr);}
+.wr-doc .wr-ledger .wr-chip{grid-row:auto;grid-column:1;justify-self:start;margin:0 0 .25rem;}
+.wr-doc .wr-ledger dt,.wr-doc .wr-ledger dd{grid-column:1;}
+/* inline interface terms and figure labels in Poppins too; <code> and formulas stay monospace */
+.wr-doc .wr-mono{font-family:var(--wr-fl);font-size:.9em;}
+.wr-doc .wr-fig svg text{font-family:var(--wr-fl);}
 </style>
 
 <div class="wr-doc">
 
   <div class="wr-masthead">
-    <h1>3D Wind Rose Method Notes</h1>
+    <h1>3D Wind Rose &mdash; Method Notes</h1>
     <p class="wr-standfirst">
       What this tool computes, and — the part that matters most when you cite it — <strong>what it
       does not</strong>. It bins recorded climate data into a 16-direction frequency table and draws
