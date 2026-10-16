@@ -57,6 +57,10 @@ window.App = window.App || {};
       const speed = parseFloat(f[21]);
       if (Number.isNaN(dir) || Number.isNaN(speed)) continue;
       if (speed >= 999) continue; // EPW missing-data sentinel
+      // A direction outside 0-360 is missing too (EPW writes 999). Binning it would
+      // put the hour in a real sector: round(999 / 22.5) % 16 is W. A calm hour
+      // needs no direction, so it is kept and still counts as calm.
+      if (speed >= 0.5 && (dir < 0 || dir > 360)) continue;
       const month = parseInt(f[1], 10);
       records.push({ dir, speed, month });
     }

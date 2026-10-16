@@ -311,7 +311,9 @@
         wind speed is column 22 (index 21) — the parser's own comment cites the EnergyPlus Weather
         File (EPW) Data Dictionary for the full column layout, and the indices it reads match it. A
         speed of 999 or above is EnergyPlus's own missing-data sentinel, and such rows are dropped
-        rather than treated as a real reading. The month is read from column 2. If no row survives
+        rather than treated as a real reading. A direction outside 0–360° is missing too (EPW
+        writes 999), and that hour is dropped as well, unless it is calm: a calm hour needs no
+        direction, so it still counts as calm. The month is read from column 2. If no row survives
         these checks, the parser refuses the file outright rather than returning an empty table.</p>
 
       <h3>The embedded presets</h3>
