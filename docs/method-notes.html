@@ -305,6 +305,32 @@
 /* inline interface terms and figure labels in Poppins too; <code> and formulas stay monospace */
 .wr-doc .wr-mono{font-family:var(--wr-fl);font-size:.9em;}
 .wr-doc .wr-fig svg text{font-family:var(--wr-fl);}
+/* every section heading in one style, the footer's "Licence": Poppins 500, sentence case,
+   dark, with a hairline under it. The section number, where there is one, matches it in grey. */
+.wr-doc .wr-traps h2,.wr-doc .wr-sechead h2,.wr-doc .wr-footer h3{font-family:var(--wr-fd);
+  font-size:1.32rem;font-weight:500;letter-spacing:-.01em;text-transform:none;color:var(--wr-ink);line-height:1.3;}
+@media (min-width:1280px){.wr-doc .wr-traps h2,.wr-doc .wr-sechead h2,.wr-doc .wr-footer h3{font-size:1.42rem;}}
+.wr-doc .wr-traps h2,.wr-doc .wr-footer h3{border-bottom:1px solid var(--wr-rule);padding-bottom:7px;}
+.wr-doc .wr-secnum{font-family:var(--wr-fd);font-size:1.32rem;font-weight:500;letter-spacing:0;color:var(--wr-ink3);line-height:1.3;}
+@media (min-width:1280px){.wr-doc .wr-secnum{font-size:1.42rem;}}
+/* light grey panels: the three warnings, then every other section, so a long page reads in
+   steps. Each panel reaches a little into the margin, so its text stays in line with the rest;
+   on a phone, where there is no margin to spare, it stays inside the column. */
+.wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){background:var(--wr-surface);border:0;border-radius:4px;
+  margin-left:-1.25rem;margin-right:-1.25rem;padding:1.4rem 1.25rem 1.1rem;}
+/* the same space before every section heading, white or grey: 2rem between sections and
+   1.4rem above the heading inside each */
+.wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){margin-top:2rem;margin-bottom:2rem;}
+.wr-doc .wr-traps,.wr-doc .wr-sec{padding-top:1.4rem;}
+/* and no extra space at the foot of a panel */
+.wr-doc .wr-traps > :last-child,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-secbody > :last-child{margin-bottom:0;}
+.wr-doc .wr-traps h2,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-sechead{border-bottom-color:rgba(10,12,16,.12);}
+/* what already sits on grey turns white inside a grey panel, so it still stands out */
+.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-tbl,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-formula,
+.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-fig svg,.wr-doc .wr-sec:nth-child(even of .wr-sec) code{background:#fff;}
+@media (max-width:700px){
+  .wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){margin-left:0;margin-right:0;padding-left:.9rem;padding-right:.9rem;}
+}
 </style>
 
 <div class="wr-doc">
