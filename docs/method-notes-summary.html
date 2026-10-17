@@ -350,23 +350,25 @@
 @media (min-width:1280px){.wr-doc .wr-secnum{font-size:1.14rem;}}
 /* on the app's page the title sits under the app's own heading, so it names only the notes */
 .wr-doc h1,.wr-doc .wr-title{font-size:1.5em;}
-/* light grey panels: the three warnings, then every other section, so a long page reads in
-   steps. Each panel reaches a little into the margin, so its text stays in line with the rest;
-   on a phone, where there is no margin to spare, it stays inside the column. */
-.wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){background:var(--wr-surface);border:0;border-radius:4px;
+/* light grey panels: the three warnings, then every other section. The exercises always stay
+   white, so their figures keep their own grey and are not a box inside a box. The panels are
+   there so a long page reads in steps. Each panel reaches a little into the margin, so its
+   text stays in line with the rest; on a phone, where there is no margin to spare, it stays
+   inside the column. */
+.wr-doc .wr-traps,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec){background:var(--wr-surface);border:0;border-radius:4px;
   margin-left:-1.25rem;margin-right:-1.25rem;padding:1.4rem 1.25rem 1.1rem;}
 /* the same space before every section heading, white or grey: 2rem between sections and
    1.4rem above the heading inside each */
-.wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){margin-top:2rem;margin-bottom:2rem;}
+.wr-doc .wr-traps,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec){margin-top:2rem;margin-bottom:2rem;}
 .wr-doc .wr-traps,.wr-doc .wr-sec{padding-top:1.4rem;}
 /* and no extra space at the foot of a panel */
-.wr-doc .wr-traps > :last-child,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-secbody > :last-child{margin-bottom:0;}
-.wr-doc .wr-traps h2,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-sechead{border-bottom-color:rgba(10,12,16,.12);}
+.wr-doc .wr-traps > :last-child,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) .wr-secbody > :last-child{margin-bottom:0;}
+.wr-doc .wr-traps h2,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) .wr-sechead{border-bottom-color:rgba(10,12,16,.12);}
 /* what already sits on grey turns white inside a grey panel, so it still stands out */
-.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-tbl,.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-formula,
-.wr-doc .wr-sec:nth-child(even of .wr-sec) .wr-fig svg,.wr-doc .wr-sec:nth-child(even of .wr-sec) code{background:#fff;}
+.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) .wr-tbl,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) .wr-formula,
+.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) .wr-fig svg,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec) code{background:#fff;}
 @media (max-width:700px){
-  .wr-doc .wr-traps,.wr-doc .wr-sec:nth-child(even of .wr-sec){margin-left:0;margin-right:0;padding-left:.9rem;padding-right:.9rem;}
+  .wr-doc .wr-traps,.wr-doc .wr-sec:not(:has(.wr-ex)):nth-child(even of .wr-sec){margin-left:0;margin-right:0;padding-left:.9rem;padding-right:.9rem;}
 }
 </style>
 
